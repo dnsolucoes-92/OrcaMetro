@@ -64,41 +64,41 @@
 
 <body class="min-h-screen pb-16 font-sans antialiased">
 
-    <div id="auth-modal" class="fixed inset-0 z-[99999] flex items-center justify-center bg-slate-950/98 p-4 backdrop-blur-md">
-        <div class="glass-card w-full max-w-sm rounded-3xl p-6 sm:p-8 text-center shadow-2xl border border-slate-800">
-            <div class="mb-4 flex items-center justify-center gap-2">
-                <div class="flex h-11 w-11 items-center justify-center rounded-2xl bg-gradient-to-br from-amber-400 to-amber-600 text-slate-950 shadow-lg shadow-amber-500/20">
-                    <i class="fa-solid fa-chart-simple text-xl"></i>
-                </div>
-                <h2 class="text-2xl font-extrabold tracking-tight text-white font-outfit">Orça<span class="text-amber-500">Metro</span></h2>
+<div id="auth-modal" class="fixed inset-0 z-[99999] flex items-center justify-center bg-slate-950/98 p-4 backdrop-blur-md">
+    <div class="glass-card w-full max-w-sm rounded-3xl p-6 sm:p-8 text-center shadow-2xl border border-slate-800">
+        <div class="mb-4 flex items-center justify-center gap-2">
+            <div class="flex h-11 w-11 items-center justify-center rounded-2xl bg-gradient-to-br from-amber-400 to-amber-600 text-slate-950 shadow-lg shadow-amber-500/20">
+                <i class="fa-solid fa-chart-simple text-xl"></i>
             </div>
-            <p class="mb-6 text-xs text-slate-400">Acesse sua conta para utilizar o sistema</p>
-            
-            <div class="space-y-3.5">
-                <input type="email" id="auth-email" placeholder="Seu E-mail" 
-                    class="w-full rounded-xl border border-slate-800 bg-black/50 px-4 py-3 text-sm text-white placeholder-slate-500 focus:border-amber-500 focus:outline-none transition-all">
-                
-                <div class="relative w-full">
-                    <input type="password" id="auth-password" placeholder="Sua Senha" 
-                        class="w-full rounded-xl border border-slate-800 bg-black/50 px-4 py-3 pr-12 text-sm text-white placeholder-slate-500 focus:border-amber-500 focus:outline-none transition-all">
-                    <button type="button" onclick="togglePasswordVisibility()" class="absolute inset-y-0 right-0 flex items-center pr-4 text-slate-400 hover:text-white">
-                        <i id="eye-icon" class="fa-solid fa-eye text-xs"></i>
-                    </button>
-                </div>
-
-                <button type="button" id="btn-entrar" onclick="fazerLogin()" class="w-full rounded-xl bg-amber-500 py-3.5 text-sm font-bold text-slate-950 hover:bg-amber-400 transition-all shadow-lg shadow-amber-500/10 active:scale-[0.98]">
-                    Entrar
-                </button>
-                
-                <button type="button" id="btn-cadastrar" onclick="fazerCadastro()"
-                    class="w-full rounded-xl border border-slate-800 bg-transparent py-3 text-sm font-semibold text-slate-400 hover:text-white transition-all active:scale-[0.98]">
-                    Criar Conta
-                </button>
-            </div>
-            
-            <p id="auth-msg" class="mt-4 min-h-[1.25rem] text-xs font-semibold leading-relaxed text-rose-500"></p>
+            <h2 class="text-2xl font-extrabold tracking-tight text-white font-outfit">Orça<span class="text-amber-500">Metro</span></h2>
         </div>
+        <p class="mb-6 text-xs text-slate-400">Acesse sua conta para utilizar o sistema</p>
+        
+        <form onsubmit="event.preventDefault(); fazerLogin();" class="space-y-3.5">
+            <input type="email" id="auth-email" placeholder="Seu E-mail" required
+                class="w-full rounded-xl border border-slate-800 bg-black/50 px-4 py-3 text-sm text-white placeholder-slate-500 focus:border-amber-500 focus:outline-none transition-all">
+            
+            <div class="relative w-full">
+                <input type="password" id="auth-password" placeholder="Sua Senha" required
+                    class="w-full rounded-xl border border-slate-800 bg-black/50 px-4 py-3 pr-12 text-sm text-white placeholder-slate-500 focus:border-amber-500 focus:outline-none transition-all">
+                <button type="button" onclick="togglePasswordVisibility()" aria-label="Mostrar ou ocultar senha" class="absolute inset-y-0 right-0 flex items-center pr-4 text-slate-400 hover:text-white">
+                    <i id="eye-icon" class="fa-solid fa-eye text-xs"></i>
+                </button>
+            </div>
+
+            <button type="submit" id="btn-entrar" class="w-full rounded-xl bg-amber-500 py-3.5 text-sm font-bold text-slate-950 hover:bg-amber-400 transition-all shadow-lg shadow-amber-500/10 active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed">
+                Entrar
+            </button>
+            
+            <button type="button" id="btn-cadastrar" onclick="fazerCadastro()"
+                class="w-full rounded-xl border border-slate-800 bg-transparent py-3 text-sm font-semibold text-slate-400 hover:text-white transition-all active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed">
+                Criar Conta
+            </button>
+        </form>
+        
+        <p id="auth-msg" class="mt-4 min-h-[1.25rem] text-xs font-semibold leading-relaxed text-rose-500"></p>
     </div>
+</div>
 
     <div id="paywall-modal" class="fixed inset-0 z-[9999] hidden flex items-center justify-center bg-slate-950/95 p-4 backdrop-blur-md">
         <div class="glass-card w-full max-w-sm rounded-3xl p-6 text-center shadow-2xl border border-amber-500/30">
@@ -446,8 +446,11 @@
             }
         }
 
-        async function fazerLogin() {
+                async function fazerLogin() {
+            const btnEntrar = document.getElementById('btn-entrar');
+            const btnCadastrar = document.getElementById('btn-cadastrar');
             const msg = document.getElementById('auth-msg');
+
             if (msg) {
                 msg.style.color = '#38bdf8';
                 msg.innerText = 'Entrando...';
@@ -472,6 +475,9 @@
                 return;
             }
 
+            btnEntrar.disabled = true;
+            btnCadastrar.disabled = true;
+
             try {
                 const { error } = await supabase.auth.signInWithPassword({ email, password });
                 if (error) {
@@ -479,6 +485,8 @@
                         msg.style.color = '#f43f5e';
                         msg.innerText = 'Erro ao entrar: ' + (error.message === 'Invalid login credentials' ? 'E-mail ou senha incorretos.' : error.message);
                     }
+                    btnEntrar.disabled = false;
+                    btnCadastrar.disabled = false;
                 } else {
                     if (msg) {
                         msg.style.color = '#10b981';
@@ -491,11 +499,16 @@
                     msg.style.color = '#f43f5e';
                     msg.innerText = 'Falha de conexão. Tente novamente.';
                 }
+                btnEntrar.disabled = false;
+                btnCadastrar.disabled = false;
             }
         }
 
         async function fazerCadastro() {
+            const btnEntrar = document.getElementById('btn-entrar');
+            const btnCadastrar = document.getElementById('btn-cadastrar');
             const msg = document.getElementById('auth-msg');
+
             if (msg) {
                 msg.style.color = '#38bdf8';
                 msg.innerText = 'Criando conta...';
@@ -528,6 +541,9 @@
                 return;
             }
 
+            btnEntrar.disabled = true;
+            btnCadastrar.disabled = true;
+
             try {
                 const { error } = await supabase.auth.signUp({ email, password });
                 if (error) {
@@ -535,19 +551,26 @@
                         msg.style.color = '#f43f5e';
                         msg.innerText = 'Erro: ' + error.message;
                     }
+                    btnEntrar.disabled = false;
+                    btnCadastrar.disabled = false;
                 } else {
                     if (msg) {
                         msg.style.color = '#10b981';
                         msg.innerText = 'Conta criada com sucesso! Faça login.';
                     }
+                    btnEntrar.disabled = false;
+                    btnCadastrar.disabled = false;
                 }
             } catch(err) {
                 if (msg) {
                     msg.style.color = '#f43f5e';
                     msg.innerText = 'Falha ao conectar com o servidor Supabase.';
                 }
+                btnEntrar.disabled = false;
+                btnCadastrar.disabled = false;
             }
         }
+
 
         async function fazerLogout() {
             if (supabase) await supabase.auth.signOut();
