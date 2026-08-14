@@ -3,352 +3,85 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>OrçaMetro - Profissional V3.3.1</title>
-    
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700;800&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-    
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-
+    <title>DN Soluções - Sistema de Orçamentos</title>
+    <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    fontFamily: {
-                        sans: ['"Plus Jakarta Sans"', 'sans-serif'],
-                        outfit: ['Outfit', 'sans-serif'],
-                    },
-                    colors: {
-                        darkBg: '#0b0f19',
-                        cardBg: '#111827',
-                        innerCard: '#1f2937',
-                        accentYellow: '#f59e0b',
-                        accentYellowHover: '#d97706',
-                    }
-                }
-            }
-        }
-    </script>
-    
-    <style>
-        body { background-color: #0b0f19; color: #e5e7eb; }
-        .glass-card {
-            background: rgba(17, 24, 39, 0.75);
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
-            border: 1px solid rgba(255, 255, 255, 0.08);
-        }
-        .fator-btn-active {
-            background-color: #f59e0b !important;
-            color: #0b0f19 !important;
-            border-color: #f59e0b !important;
-        }
-        @media screen { #area-impressao-pdf { display: none !important; } }
-        @media print {
-            body > *:not(#area-impressao-pdf) { display: none !important; }
-            #area-impressao-pdf { 
-                display: block !important; 
-                width: 100% !important; 
-                background: #ffffff !important; 
-                color: #000000 !important; 
-                padding: 0; margin: 0;
-            }
-            html, body { background: #ffffff !important; color: #000000 !important; margin: 0; padding: 0; }
-        }
-    </style>
+    <!-- FontAwesome para Ícones -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Supabase JS SDK -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
+<body class="bg-slate-900 text-slate-100 min-h-screen flex flex-col items-center justify-center p-4">
 
-<body class="min-h-screen pb-16 font-sans antialiased">
-
-<div id="auth-modal" class="fixed inset-0 z-[99999] flex items-center justify-center bg-slate-950/98 p-4 backdrop-blur-md">
-    <div class="glass-card w-full max-w-sm rounded-3xl p-6 sm:p-8 text-center shadow-2xl border border-slate-800">
-        <div class="mb-4 flex items-center justify-center gap-2">
-            <div class="flex h-11 w-11 items-center justify-center rounded-2xl bg-gradient-to-br from-amber-400 to-amber-600 text-slate-950 shadow-lg shadow-amber-500/20">
-                <i class="fa-solid fa-chart-simple text-xl"></i>
-            </div>
-            <h2 class="text-2xl font-extrabold tracking-tight text-white font-outfit">Orça<span class="text-amber-500">Metro</span></h2>
+    <!-- Modal de Autenticação / Login -->
+    <div id="auth-modal" class="w-full max-w-md bg-slate-800 rounded-xl shadow-2xl p-6 border border-slate-700">
+        <div class="text-center mb-6">
+            <h1 class="text-2xl font-bold tracking-wide text-cyan-400">DN SOLUÇÕES</h1>
+            <p class="text-sm text-slate-400 mt-1">Faça login para acessar o sistema</p>
         </div>
-        <p class="mb-6 text-xs text-slate-400">Acesse sua conta para utilizar o sistema</p>
-        
-        <form onsubmit="event.preventDefault(); fazerLogin();" class="space-y-3.5">
-            <input type="email" id="auth-email" placeholder="Seu E-mail" required
-                class="w-full rounded-xl border border-slate-800 bg-black/50 px-4 py-3 text-sm text-white placeholder-slate-500 focus:border-amber-500 focus:outline-none transition-all">
-            
-            <div class="relative w-full">
-                <input type="password" id="auth-password" placeholder="Sua Senha" required
-                    class="w-full rounded-xl border border-slate-800 bg-black/50 px-4 py-3 pr-12 text-sm text-white placeholder-slate-500 focus:border-amber-500 focus:outline-none transition-all">
-                <button type="button" onclick="togglePasswordVisibility()" aria-label="Mostrar ou ocultar senha" class="absolute inset-y-0 right-0 flex items-center pr-4 text-slate-400 hover:text-white">
-                    <i id="eye-icon" class="fa-solid fa-eye text-xs"></i>
+
+        <form id="auth-form" onsubmit="event.preventDefault(); fazerLogin();" class="space-y-4">
+            <!-- Campo de E-mail -->
+            <div>
+                <label class="block text-xs font-semibold text-slate-300 mb-1 uppercase tracking-wider">E-mail</label>
+                <input type="email" id="auth-email" placeholder="seu@email.com" 
+                    class="w-full px-4 py-2.5 bg-slate-900 border border-slate-700 rounded-lg focus:outline-none focus:border-cyan-500 text-slate-100 text-sm">
+            </div>
+
+            <!-- Campo de Senha com Olhinho -->
+            <div>
+                <label class="block text-xs font-semibold text-slate-300 mb-1 uppercase tracking-wider">Senha</label>
+                <div class="relative">
+                    <input type="password" id="auth-password" placeholder="Sua senha" 
+                        class="w-full px-4 py-2.5 bg-slate-900 border border-slate-700 rounded-lg focus:outline-none focus:border-cyan-500 text-slate-100 text-sm pr-10">
+                    <button type="button" onclick="togglePasswordVisibility()" 
+                        class="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-cyan-400 focus:outline-none">
+                        <i id="eye-icon" class="fa-solid fa-eye text-sm"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Mensagens de Erro/Alerta -->
+            <div id="auth-msg" class="text-xs font-medium text-center min-h-[1.25rem]"></div>
+
+            <!-- Botões de Ação -->
+            <div class="space-y-2.5 pt-2">
+                <button type="submit" id="btn-entrar" 
+                    class="w-full py-2.5 bg-cyan-600 hover:bg-cyan-500 text-white font-semibold rounded-lg shadow-md transition duration-200 text-sm active:scale-[0.98]">
+                    Entrar
+                </button>
+                <button type="button" id="btn-cadastrar" onclick="fazerCadastro()" 
+                    class="w-full py-2.5 bg-slate-700 hover:bg-slate-600 text-slate-200 font-semibold rounded-lg transition duration-200 text-sm active:scale-[0.98]">
+                    Criar Conta
                 </button>
             </div>
-
-            <button type="submit" id="btn-entrar" class="w-full rounded-xl bg-amber-500 py-3.5 text-sm font-bold text-slate-950 hover:bg-amber-400 transition-all shadow-lg shadow-amber-500/10 active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed">
-                Entrar
-            </button>
-            
-            <button type="button" id="btn-cadastrar" onclick="fazerCadastro()"
-                class="w-full rounded-xl border border-slate-800 bg-transparent py-3 text-sm font-semibold text-slate-400 hover:text-white transition-all active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed">
-                Criar Conta
-            </button>
         </form>
-        
-        <p id="auth-msg" class="mt-4 min-h-[1.25rem] text-xs font-semibold leading-relaxed text-rose-500"></p>
-    </div>
-</div>
-
-    <div id="paywall-modal" class="fixed inset-0 z-[9999] hidden flex items-center justify-center bg-slate-950/95 p-4 backdrop-blur-md">
-        <div class="glass-card w-full max-w-sm rounded-3xl p-6 text-center shadow-2xl border border-amber-500/30">
-            <div class="w-16 h-16 bg-amber-500/10 border border-amber-500/30 rounded-2xl flex items-center justify-center mx-auto mb-4 text-amber-500 text-2xl">
-                <i class="fa-solid fa-crown"></i>
-            </div>
-            <h3 class="text-xl font-extrabold text-white font-outfit mb-2">Acesso Vitalício Necessário</h3>
-            <p class="text-xs text-slate-400 mb-6 leading-relaxed">
-                Sua conta está registrada! Adquira a **Licença Vitalícia** (pagamento único via PIX, Cartão ou Boleto) para liberar seu acesso sem mensalidades.
-            </p>
-            <a id="btn-comprar-asaas" href="https://www.asaas.com/c/ahrsd2kdm8jcmqqq" target="_blank" 
-               class="block w-full py-4 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-black rounded-2xl shadow-lg text-sm tracking-wide transition-all uppercase mb-3">
-                <i class="fa-solid fa-bolt mr-2"></i>Garantir Licença (R$ 127,00)
-            </a>
-            <button onclick="fazerLogout()" class="text-xs text-slate-500 hover:text-slate-300 font-semibold transition-all">Sair da conta</button>
-        </div>
     </div>
 
-    <header class="p-6 max-w-md mx-auto flex items-center justify-between border-b border-gray-900/80">
-        <div class="flex items-center gap-3">
-            <div class="bg-gradient-to-br from-amber-400 to-amber-600 text-darkBg font-black text-xl flex items-center justify-center w-11 h-11 rounded-2xl shadow-lg shadow-amber-500/20">
-                <i class="fa-solid fa-chart-simple text-darkBg text-lg"></i>
-            </div>
-            <div>
-                <h1 class="text-xl font-extrabold text-white tracking-wide font-outfit">Orça<span class="text-accentYellow">Metro</span></h1>
-                <p class="text-[10px] text-amber-500 font-bold tracking-widest uppercase">MVP Comercial V3.3.1 - Vitalício</p>
-            </div>
-        </div>
-        <div class="flex items-center gap-2">
-            <div id="badge-status" class="bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-[10px] font-bold px-3 py-1 rounded-full uppercase tracking-wider">
-                Online
-            </div>
-            <button id="btn-logout" onclick="fazerLogout()" title="Sair da Conta" class="hidden text-gray-400 hover:text-rose-400 transition-colors p-1 ml-1">
-                <i class="fa-solid fa-right-from-bracket text-base"></i>
-            </button>
-        </div>
-    </header>
-
-    <nav class="max-w-md mx-auto px-5 mt-6">
-        <div class="bg-black/40 p-1.5 rounded-2xl flex gap-1 border border-gray-800/60">
-            <button id="tab-orcamento" onclick="switchTab('orcamento')" class="flex-1 py-3 text-xs font-bold rounded-xl transition-all duration-300 bg-accentYellow text-darkBg shadow-md">
-                <i class="fa-solid fa-calculator mr-1.5"></i>Orçamento
-            </button>
-            <button id="tab-historico" onclick="switchTab('historico')" class="flex-1 py-3 text-xs font-bold rounded-xl transition-all duration-300 text-gray-400 hover:text-white">
-                <i class="fa-solid fa-clock-rotate-left mr-1.5"></i>Histórico
-            </button>
-            <button id="tab-configurar" onclick="switchTab('configurar')" class="flex-1 py-3 text-xs font-bold rounded-xl transition-all duration-300 text-gray-400 hover:text-white">
-                <i class="fa-solid fa-gear mr-1.5"></i>Configurar
-            </button>
-        </div>
-    </nav>
-
-    <main id="view-orcamento" class="max-w-md mx-auto px-5 mt-6 space-y-5">
-        <section class="glass-card p-5 rounded-3xl space-y-4 shadow-xl">
-            <div>
-                <label class="block text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-2">Nome do Cliente (Opcional)</label>
-                <div class="relative">
-                    <span class="absolute inset-y-0 left-0 flex items-center pl-3.5 pointer-events-none text-gray-500">
-                        <i class="fa-solid fa-user text-xs"></i>
-                    </span>
-                    <input type="text" id="cliente-nome" placeholder="Ex: Nome do cliente" class="w-full bg-black/40 border border-gray-800 rounded-xl pl-9 pr-4 py-3 text-sm text-white placeholder-gray-600 focus:outline-none focus:border-accentYellow transition-all">
-                </div>
-            </div>
-            <div>
-                <label class="block text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-2">Tipo de Adesivo / Serviço</label>
-                <div class="relative">
-                    <span class="absolute inset-y-0 left-0 flex items-center pl-3.5 pointer-events-none text-gray-500">
-                        <i class="fa-solid fa-scroll text-xs"></i>
-                    </span>
-                    <select id="servico-material" onchange="atualizarNomeMaterialSelecionado()" class="w-full bg-black/40 border border-gray-800 rounded-xl pl-9 pr-4 py-3 text-sm text-white focus:outline-none focus:border-accentYellow transition-all appearance-none">
-                    </select>
-                    <span class="absolute inset-y-0 right-0 flex items-center pr-3.5 pointer-events-none text-gray-500">
-                        <i class="fa-solid fa-chevron-down text-xs"></i>
-                    </span>
-                </div>
-            </div>
-        </section>
-
-        <section class="glass-card p-5 rounded-3xl shadow-xl space-y-4">
-            <h2 class="text-[10px] font-bold text-gray-400 uppercase tracking-wider"><i class="fa-solid fa-ruler-combined mr-1.5 text-accentYellow"></i>Dimensões e Logística</h2>
-            <div class="grid grid-cols-2 gap-4">
-                <div>
-                    <label class="block text-xs font-semibold text-gray-400 mb-2">Largura (Metros)</label>
-                    <input type="text" id="medida-largura" placeholder="0,00" class="w-full bg-black/40 border border-gray-800 rounded-xl px-4 py-3 text-white text-center text-lg font-bold font-outfit focus:outline-none focus:border-accentYellow transition-all">
-                </div>
-                <div>
-                    <label class="block text-xs font-semibold text-gray-400 mb-2">Altura (Metros)</label>
-                    <input type="text" id="medida-altura" placeholder="0,00" class="w-full bg-black/40 border border-gray-800 rounded-xl px-4 py-3 text-white text-center text-lg font-bold font-outfit focus:outline-none focus:border-accentYellow transition-all">
-                </div>
-            </div>
-            <div>
-                <label class="block text-xs font-semibold text-gray-400 mb-2">Distância do Deslocamento (KM - Ida e Volta)</label>
-                <div class="relative">
-                    <span class="absolute inset-y-0 left-0 flex items-center pl-3.5 pointer-events-none text-gray-500">
-                        <i class="fa-solid fa-route text-xs"></i>
-                    </span>
-                    <input type="text" id="medida-distancia" placeholder="Deixe 0 se não houver viagem" class="w-full bg-black/40 border border-gray-800 rounded-xl pl-9 pr-4 py-3 text-sm text-white focus:outline-none focus:border-accentYellow transition-all">
-                </div>
-            </div>
-        </section>
-
-        <section class="glass-card p-5 rounded-3xl shadow-xl">
-            <h2 class="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-3"><i class="fa-solid fa-circle-exclamation mr-1.5 text-accentYellow"></i>Grau de Instalação</h2>
-            <div class="grid grid-cols-3 gap-2">
-                <button id="btn-fator-facil" type="button" onclick="setFatorTipo('facil')" class="fator-btn py-3.5 px-2 rounded-2xl border border-accentYellow bg-accentYellow text-darkBg font-bold transition-all flex flex-col items-center">
-                    <span class="text-sm font-outfit">Fácil</span>
-                    <span id="lbl-fator-facil" class="text-[10px] opacity-80 mt-1 font-normal">+0%</span>
-                </button>
-                <button id="btn-fator-medio" type="button" onclick="setFatorTipo('medio')" class="fator-btn py-3.5 px-2 rounded-2xl border border-gray-800 bg-black/30 text-gray-400 font-bold transition-all flex flex-col items-center hover:border-gray-700">
-                    <span class="text-sm font-outfit">Médio</span>
-                    <span id="lbl-fator-medio" class="text-[10px] opacity-60 mt-1 font-normal">+40%</span>
-                </button>
-                <button id="btn-fator-dificil" type="button" onclick="setFatorTipo('dificil')" class="fator-btn py-3.5 px-2 rounded-2xl border border-gray-800 bg-black/30 text-gray-400 font-bold transition-all flex flex-col items-center hover:border-gray-700">
-                    <span class="text-sm font-outfit">Difícil</span>
-                    <span id="lbl-fator-dificil" class="text-[10px] opacity-60 mt-1 font-normal">+80%</span>
-                </button>
-            </div>
-        </section>
-
-        <div class="py-2">
-            <button type="button" onclick="calcularOrcamento()" class="w-full py-5 px-6 bg-gradient-to-r from-amber-500 via-amber-400 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-darkBg font-extrabold rounded-2xl shadow-xl shadow-amber-500/20 active:scale-[0.98] transition-all uppercase tracking-widest text-sm flex items-center justify-center gap-3 border border-amber-300/30">
-                <i class="fa-solid fa-calculator text-base"></i> 
-                <span>Calcular Orçamento Justo</span>
-            </button>
-        </div>
-
-        <section class="glass-card p-6 rounded-3xl text-center shadow-2xl border-amber-500/20 relative overflow-hidden">
-            <p class="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-2">Valor Total ao Cliente</p>
-            <div id="resultado-valor" class="text-4xl font-black text-accentYellow tracking-tight mb-2 font-outfit">R$ 0,00</div>
-            
-            <div class="bg-black/30 border border-gray-800/80 rounded-2xl p-3 mb-6 flex flex-col gap-1 text-xs text-gray-400">
-                <div class="flex justify-between px-2">
-                    <span>Área Realizada:</span>
-                    <strong id="resultado-area" class="text-gray-200">0,00m²</strong>
-                </div>
-                <div class="flex justify-between px-2">
-                    <span>Adicional Frete/Rodagem:</span>
-                    <strong id="resultado-frete" class="text-gray-200">R$ 0,00</strong>
-                </div>
-                <div class="flex justify-between px-2 pt-1 border-t border-gray-800/50">
-                    <span class="text-emerald-400 font-semibold"><i class="fa-solid fa-wallet mr-1"></i>Lucro Líquido Previsto:</span>
-                    <strong id="resultado-lucro" class="text-emerald-400">R$ 0,00 (0%)</strong>
-                </div>
-            </div>
-            
-            <button type="button" onclick="enviarWhatsApp()" class="w-full py-4 bg-emerald-600 hover:bg-emerald-500 text-white font-extrabold rounded-2xl transition-all flex items-center justify-center gap-2 shadow-lg active:scale-[0.98]">
-                <i class="fa-brands fa-whatsapp text-lg"></i> Enviar Mensagem para o Cliente
-            </button>
-
-            <button type="button" onclick="gerarPDFOrcamento()" class="w-full py-4 mt-3 bg-amber-500 hover:bg-amber-400 text-slate-950 font-extrabold rounded-2xl transition-all flex items-center justify-center gap-2 shadow-lg active:scale-[0.98]">
-                <i class="fa-solid fa-file-pdf text-lg"></i> Baixar Proposta em PDF
-            </button>
-        </section>
-    </main>
-
-    <main id="view-historico" class="max-w-md mx-auto px-5 mt-6 space-y-4 hidden">
-        <div class="flex items-center justify-between mb-2">
-            <h2 class="text-xs font-bold text-gray-400 uppercase tracking-wider"><i class="fa-solid fa-list-check mr-1.5 text-accentYellow"></i>Últimos Cálculos</h2>
-            <button type="button" onclick="limparHistorico()" class="text-[10px] text-red-400 hover:text-red-300 font-bold">
-                <i class="fa-solid fa-trash-can mr-1"></i>Limpar Tudo
-            </button>
-        </div>
-        <div id="lista-historico" class="space-y-3"></div>
-    </main>
-
-    <main id="view-configurar" class="max-w-md mx-auto px-5 mt-6 space-y-5 hidden">
-        <section class="glass-card p-5 rounded-3xl space-y-4">
-            <h2 class="text-[10px] font-bold text-gray-400 uppercase tracking-wider"><i class="fa-solid fa-building mr-1.5 text-accentYellow"></i>Identidade da Oficina</h2>
-            <div>
-                <label class="block text-xs font-semibold text-gray-400 mb-2">Nome Comercial</label>
-                <input type="text" id="cfg-empresa" placeholder="Seu nome" class="w-full bg-black/40 border border-gray-800 rounded-xl px-4 py-3 text-sm text-white focus:outline-none">
-            </div>
-        </section>
-
-        <section class="glass-card p-5 rounded-3xl space-y-4">
-            <h2 class="text-[10px] font-bold text-gray-400 uppercase tracking-wider"><i class="fa-solid fa-tags mr-1.5 text-accentYellow"></i>Preço de Custo dos Adesivos (/m²)</h2>
-            <p class="text-[10px] text-amber-500 -mt-2">Insira aqui o valor real cobrado pelo seu fornecedor gráfico.</p>
-            
-            <div id="lista-materials-config" class="space-y-3"></div>
-
-            <div class="pt-4 border-t border-gray-800/80">
-                <p class="text-[10px] font-bold text-gray-400 uppercase mb-2">Adicionar Novo Material (Custo)</p>
-                <div class="flex gap-2">
-                    <input type="text" id="add-material-nome" placeholder="Ex: Vinil Jateado" class="flex-1 bg-black/40 border border-gray-800 rounded-xl px-3.5 py-2.5 text-xs text-white">
-                    <input type="text" id="add-material-preco" placeholder="Custo/m²" class="w-20 bg-black/40 border border-gray-800 rounded-xl px-2 py-2.5 text-xs text-white text-center">
-                    <button type="button" onclick="adicionarMaterialNovo()" class="bg-accentYellow text-darkBg text-xs font-bold px-3.5 py-2.5 rounded-xl"><i class="fa-solid fa-plus"></i></button>
-                </div>
-            </div>
-        </section>
-
-        <section class="glass-card p-5 rounded-3xl space-y-4">
-            <h2 class="text-[10px] font-bold text-gray-400 uppercase tracking-wider"><i class="fa-solid fa-sliders mr-1.5 text-accentYellow"></i>Fatores de Grau de Instalação (%)</h2>
-            <div class="grid grid-cols-3 gap-3">
-                <div>
-                    <label class="block text-[10px] font-semibold text-gray-400 mb-1 text-center">Fácil (%)</label>
-                    <input type="text" id="cfg-fator-facil" class="w-full bg-black/40 border border-gray-800 rounded-xl px-2 py-2.5 text-xs text-white font-bold text-center focus:outline-none">
-                </div>
-                <div>
-                    <label class="block text-[10px] font-semibold text-gray-400 mb-1 text-center">Médio (%)</label>
-                    <input type="text" id="cfg-fator-medio" class="w-full bg-black/40 border border-gray-800 rounded-xl px-2 py-2.5 text-xs text-white font-bold text-center focus:outline-none">
-                </div>
-                <div>
-                    <label class="block text-[10px] font-semibold text-gray-400 mb-1 text-center">Difícil (%)</label>
-                    <input type="text" id="cfg-fator-dificil" class="w-full bg-black/40 border border-gray-800 rounded-xl px-2 py-2.5 text-xs text-white font-bold text-center focus:outline-none">
-                </div>
-            </div>
-        </section>
-
-        <section class="glass-card p-5 rounded-3xl space-y-4">
-            <h2 class="text-[10px] font-bold text-gray-400 uppercase tracking-wider"><i class="fa-solid fa-circle-dollar-to-slot mr-1.5 text-accentYellow"></i>Regras de Markup e Logística</h2>
-            <div>
-                <label class="block text-xs font-semibold text-gray-400 mb-2">Margem de Lucro Desejada (%)</label>
-                <input type="text" id="cfg-margem" class="w-full bg-black/40 border border-gray-800 rounded-xl px-4 py-3 text-sm text-emerald-400 font-bold focus:outline-none">
-            </div>
-            <div>
-                <label class="block text-xs font-semibold text-gray-400 mb-2">Valor Cobrado por KM Rodado (R$)</label>
-                <input type="text" id="cfg-valorkm" class="w-full bg-black/40 border border-gray-800 rounded-xl px-4 py-3 text-sm text-white font-bold focus:outline-none">
-            </div>
-            <div>
-                <label class="block text-xs font-semibold text-gray-400 mb-2">Taxa Base de Instalação (R$)</label>
-                <input type="text" id="cfg-taxabase" class="w-full bg-black/40 border border-gray-800 rounded-xl px-4 py-3 text-sm text-white focus:outline-none">
-            </div>
-            <div>
-                <label class="block text-xs font-semibold text-gray-400 mb-2">Validade do Orçamento (Dias)</label>
-                <input type="text" id="cfg-validade" class="w-full bg-black/40 border border-gray-800 rounded-xl px-4 py-3 text-sm text-white font-bold focus:outline-none">
-            </div>
-            <div>
-                <label class="block text-xs font-semibold text-gray-400 mb-2">WhatsApp (Apenas DDD + Número, ex: 11939386682)</label>
-                <input type="text" id="cfg-whatsapp" class="w-full bg-black/40 border border-gray-800 rounded-xl px-4 py-3 text-sm text-white focus:outline-none">
-            </div>
-        </section>
-
-        <button type="button" onclick="salvarConfiguracoes()" class="w-full py-4 bg-accentYellow hover:bg-accentYellowHover text-darkBg font-extrabold rounded-2xl uppercase tracking-wider text-xs shadow-lg">
-            <i class="fa-solid fa-floppy-disk mr-1.5"></i> Salvar Parâmetros V3.3.1
-        </button>
-    </main>
-
-    <footer class="mt-12 text-center text-xs text-gray-400/80 max-w-md mx-auto px-5 space-y-2">
-        <p>© 2026 OrçaMetro - DN SOLUÇÕES. Todos os direitos reservados.</p>
-        <p class="text-accentYellow font-semibold tracking-wide">Licença Comercial MVP Ativa</p>
-        <p>
-            <a href="termos.html" target="_blank" class="text-blue-400 hover:underline mx-2">Termos de Uso</a> | 
-            <a href="privacidade.html" target="_blank" class="text-blue-400 hover:underline mx-2">Política de Privacidade</a>
-        </p>
-    </footer>
-
+    <!-- Script Principal Blindado -->
     <script>
         const SUPABASE_URL = 'https://ezxehftahskaoiahkils.supabase.co';
         const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImV6eGVoZnRhaHNrYW9pYWhraWxzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODQ3NzA0NDMsImV4cCI6MjEwMDM0NjQ0M30.f1dbtC0JhGyWxH7u4atMu2htCZiLQf20-j2VRIJnW7M';
-        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+        
+        let supabase = null;
+
+        // Inicialização defensiva do Supabase para evitar travamentos silenciosos
+        try {
+            if (window.supabase) {
+                supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+            } else {
+                throw new Error("SDK do Supabase não carregado.");
+            }
+        } catch (erroInit) {
+            console.error("Falha crítica ao conectar com o Supabase:", erroInit);
+            window.addEventListener('DOMContentLoaded', () => {
+                const msg = document.getElementById('auth-msg');
+                if (msg) {
+                    msg.style.color = '#f43f5e';
+                    msg.innerText = 'Erro ao carregar serviços de rede. Verifique sua conexão.';
+                }
+            });
+        }
 
         let currentUser = null;
         let tipoFatorAtual = 'facil';
@@ -368,9 +101,12 @@
             fatoresDificuldade: { facil: 0, medio: 40, dificil: 80 }
         };
 
+        // Função isolada do botão de senha (olhinho) - Funciona 100% independente de rede
         function togglePasswordVisibility() {
             const passwordInput = document.getElementById('auth-password');
             const eyeIcon = document.getElementById('eye-icon');
+            if (!passwordInput || !eyeIcon) return;
+            
             if (passwordInput.type === 'password') {
                 passwordInput.type = 'text';
                 eyeIcon.classList.remove('fa-eye');
@@ -382,636 +118,98 @@
             }
         }
 
-        function parseNumber(val) {
-            if (val === null || val === undefined || val === '') return 0;
-            if (typeof val === 'number') return val;
-            const cleanStr = val.toString().trim().replace(',', '.');
-            const num = parseFloat(cleanStr);
-            return isNaN(num) ? 0 : num;
-        }
+        // Função de Login segura com controle de estado de botões
+        async function fazerLogin() {
+            const emailInput = document.getElementById('auth-email');
+            const passwordInput = document.getElementById('auth-password');
+            const msgBox = document.getElementById('auth-msg');
+            const btnEntrar = document.getElementById('btn-entrar');
 
-        document.addEventListener('DOMContentLoaded', () => {
-            setupAuth();
-            window.addEventListener('online', atualizarStatusRede);
-            window.addEventListener('offline', atualizarStatusRede);
-            atualizarStatusRede();
-        });
+            if (!emailInput.value || !passwordInput.value) {
+                msgBox.style.color = '#f43f5e';
+                msgBox.innerText = 'Preencha e-mail e senha para continuar.';
+                return;
+            }
 
-        function setupAuth() {
-            if (supabase) {
-                supabase.auth.getSession().then(({ data: { session } }) => {
-                    tratarSessao(session);
-                }).catch(e => console.error("Erro na sessão:", e));
+            if (!supabase) {
+                msgBox.style.color = '#f43f5e';
+                msgBox.innerText = 'Erro de conexão com o banco de dados.';
+                return;
+            }
 
-                supabase.auth.onAuthStateChange((_event, session) => {
-                    tratarSessao(session);
+            btnEntrar.disabled = true;
+            btnEntrar.innerText = 'Entrando...';
+            msgBox.innerText = '';
+
+            try {
+                const { data, error } = await supabase.auth.signInWithPassword({
+                    email: emailInput.value.trim(),
+                    password: passwordInput.value
                 });
-            }
-        }
-
-        async function tratarSessao(session) {
-            const authModal = document.getElementById('auth-modal');
-            const paywallModal = document.getElementById('paywall-modal');
-            const btnLogout = document.getElementById('btn-logout');
-
-            if (!session) {
-                currentUser = null;
-                if (authModal) authModal.style.display = 'flex';
-                if (paywallModal) paywallModal.classList.add('hidden');
-                if (btnLogout) btnLogout.classList.add('hidden');
-                return;
-            }
-
-            currentUser = session.user;
-            if (authModal) authModal.style.display = 'none';
-            if (btnLogout) btnLogout.classList.remove('hidden');
-
-            try {
-                const { data: perfil, error } = await supabase
-                    .from('perfis')
-                    .select('*')
-                    .eq('id', currentUser.id)
-                    .maybeSingle();
-
-                if (error || !perfil || (perfil.status_assinatura !== 'ativo' && perfil.status_assinatura !== 'vitalicio')) {
-                    if (paywallModal) paywallModal.classList.remove('hidden');
-                } else {
-                    if (paywallModal) paywallModal.classList.add('hidden');
-                    await carregarConfiguracoesDoBanco(perfil);
-                    await carregarMateriaisDoBanco();
-                    renderHistorico();
-                }
-            } catch (e) {
-                console.error("Erro na validação da licença:", e);
-            }
-        }
-
-                async function fazerLogin() {
-            const btnEntrar = document.getElementById('btn-entrar');
-            const btnCadastrar = document.getElementById('btn-cadastrar');
-            const msg = document.getElementById('auth-msg');
-
-            if (msg) {
-                msg.style.color = '#38bdf8';
-                msg.innerText = 'Entrando...';
-            }
-
-            const email = document.getElementById('auth-email').value.trim();
-            const password = document.getElementById('auth-password').value.trim();
-
-            if (!email || !password) {
-                if (msg) {
-                    msg.style.color = '#f43f5e';
-                    msg.innerText = 'Preencha e-mail e senha.';
-                }
-                return;
-            }
-
-            if (!supabase) {
-                if (msg) {
-                    msg.style.color = '#f43f5e';
-                    msg.innerText = 'Biblioteca Supabase não carregada.';
-                }
-                return;
-            }
-
-            btnEntrar.disabled = true;
-            btnCadastrar.disabled = true;
-
-            try {
-                const { error } = await supabase.auth.signInWithPassword({ email, password });
-                if (error) {
-                    if (msg) {
-                        msg.style.color = '#f43f5e';
-                        msg.innerText = 'Erro ao entrar: ' + (error.message === 'Invalid login credentials' ? 'E-mail ou senha incorretos.' : error.message);
-                    }
-                    btnEntrar.disabled = false;
-                    btnCadastrar.disabled = false;
-                } else {
-                    if (msg) {
-                        msg.style.color = '#10b981';
-                        msg.innerText = 'Sucesso!';
-                    }
-                    window.location.reload();
-                }
-            } catch (err) {
-                if (msg) {
-                    msg.style.color = '#f43f5e';
-                    msg.innerText = 'Falha de conexão. Tente novamente.';
-                }
-                btnEntrar.disabled = false;
-                btnCadastrar.disabled = false;
-            }
-        }
-
-        async function fazerCadastro() {
-            const btnEntrar = document.getElementById('btn-entrar');
-            const btnCadastrar = document.getElementById('btn-cadastrar');
-            const msg = document.getElementById('auth-msg');
-
-            if (msg) {
-                msg.style.color = '#38bdf8';
-                msg.innerText = 'Criando conta...';
-            }
-
-            const email = document.getElementById('auth-email').value.trim();
-            const password = document.getElementById('auth-password').value.trim();
-
-            if (!email || !password) {
-                if (msg) {
-                    msg.style.color = '#f43f5e';
-                    msg.innerText = 'Preencha e-mail e senha.';
-                }
-                return;
-            }
-
-            if (password.length < 6) {
-                if (msg) {
-                    msg.style.color = '#f43f5e';
-                    msg.innerText = 'Senha mínima: 6 caracteres.';
-                }
-                return;
-            }
-
-            if (!supabase) {
-                if (msg) {
-                    msg.style.color = '#f43f5e';
-                    msg.innerText = 'Erro de conexão.';
-                }
-                return;
-            }
-
-            btnEntrar.disabled = true;
-            btnCadastrar.disabled = true;
-
-            try {
-                const { error } = await supabase.auth.signUp({ email, password });
-                if (error) {
-                    if (msg) {
-                        msg.style.color = '#f43f5e';
-                        msg.innerText = 'Erro: ' + error.message;
-                    }
-                    btnEntrar.disabled = false;
-                    btnCadastrar.disabled = false;
-                } else {
-                    if (msg) {
-                        msg.style.color = '#10b981';
-                        msg.innerText = 'Conta criada com sucesso! Faça login.';
-                    }
-                    btnEntrar.disabled = false;
-                    btnCadastrar.disabled = false;
-                }
-            } catch(err) {
-                if (msg) {
-                    msg.style.color = '#f43f5e';
-                    msg.innerText = 'Falha ao conectar com o servidor Supabase.';
-                }
-                btnEntrar.disabled = false;
-                btnCadastrar.disabled = false;
-            }
-        }
-
-
-        async function fazerLogout() {
-            if (supabase) await supabase.auth.signOut();
-            window.location.reload();
-        }
-
-        function atualizarStatusRede() {
-            const badge = document.getElementById('badge-status');
-            if (navigator.onLine) {
-                badge.className = "bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-[10px] font-bold px-3 py-1 rounded-full uppercase tracking-wider";
-                badge.innerText = "Online";
-            } else {
-                badge.className = "bg-amber-500/10 border border-amber-500/20 text-amber-400 text-[10px] font-bold px-3 py-1 rounded-full uppercase tracking-wider";
-                badge.innerText = "Offline";
-            }
-        }
-
-        function switchTab(tab) {
-            document.getElementById('view-orcamento').classList.add('hidden');
-            document.getElementById('view-historico').classList.add('hidden');
-            document.getElementById('view-configurar').classList.add('hidden');
-
-            document.getElementById('tab-orcamento').className = "flex-1 py-3 text-xs font-bold rounded-xl transition-all duration-300 text-gray-400 hover:text-white";
-            document.getElementById('tab-historico').className = "flex-1 py-3 text-xs font-bold rounded-xl transition-all duration-300 text-gray-400 hover:text-white";
-            document.getElementById('tab-configurar').className = "flex-1 py-3 text-xs font-bold rounded-xl transition-all duration-300 text-gray-400 hover:text-white";
-
-            if (tab === 'orcamento') {
-                document.getElementById('view-orcamento').classList.remove('hidden');
-                document.getElementById('tab-orcamento').className = "flex-1 py-3 text-xs font-bold rounded-xl transition-all duration-300 bg-accentYellow text-darkBg shadow-md";
-            } else if (tab === 'historico') {
-                document.getElementById('view-historico').classList.remove('hidden');
-                document.getElementById('tab-historico').className = "flex-1 py-3 text-xs font-bold rounded-xl transition-all duration-300 bg-accentYellow text-darkBg shadow-md";
-                renderHistorico();
-            } else if (tab === 'configurar') {
-                document.getElementById('view-configurar').classList.remove('hidden');
-                document.getElementById('tab-configurar').className = "flex-1 py-3 text-xs font-bold rounded-xl transition-all duration-300 bg-accentYellow text-darkBg shadow-md";
-            }
-        }
-
-        async function carregarConfiguracoesDoBanco(perfil) {
-            const config = {
-                empresa: perfil.empresa || configPadrao.empresa,
-                margemLucro: perfil.margem_lucro !== null ? perfil.margem_lucro : configPadrao.margemLucro,
-                valorKm: perfil.valor_km !== null ? perfil.valor_km : configPadrao.valorKm,
-                taxaBase: perfil.taxa_base !== null ? perfil.taxa_base : configPadrao.taxaBase,
-                validade: perfil.validade !== null ? perfil.validade : configPadrao.validade,
-                whatsapp: perfil.whatsapp || configPadrao.whatsapp,
-                fatoresDificuldade: perfil.fatores_dificuldade || configPadrao.fatoresDificuldade
-            };
-
-            document.getElementById('cfg-empresa').value = config.empresa;
-            document.getElementById('cfg-margem').value = config.margemLucro;
-            document.getElementById('cfg-valorkm').value = config.valorKm;
-            document.getElementById('cfg-taxabase').value = config.taxaBase;
-            document.getElementById('cfg-validade').value = config.validade;
-            document.getElementById('cfg-whatsapp').value = config.whatsapp;
-
-            const fat = config.fatoresDificuldade;
-            document.getElementById('cfg-fator-facil').value = fat.facil;
-            document.getElementById('cfg-fator-medio').value = fat.medio;
-            document.getElementById('cfg-fator-dificil').value = fat.dificil;
-
-            document.getElementById('lbl-fator-facil').innerText = `+${fat.facil}%`;
-            document.getElementById('lbl-fator-medio').innerText = `+${fat.medio}%`;
-            document.getElementById('lbl-fator-dificil').innerText = `+${fat.dificil}%`;
-        }
-
-        async function carregarMateriaisDoBanco() {
-            if (!currentUser || !supabase) return;
-            try {
-                const { data, error } = await supabase
-                    .from('materiais')
-                    .select('*')
-                    .eq('user_id', currentUser.id);
-
-                if (!error && data) {
-                    renderSelectMateriais(data);
-                    renderConfigMateriais(data);
-                }
-            } catch(e) {
-                console.error("Erro ao carregar materiais do banco:", e);
-            }
-        }
-
-        function renderSelectMateriais(materiais) {
-            const select = document.getElementById('servico-material');
-            select.innerHTML = '';
-            
-            if (!materiais || materiais.length === 0) {
-                select.innerHTML = '<option value="0">Nenhum material cadastrado</option>';
-                materialNomeSelecionado = "Nenhum material";
-                return;
-            }
-
-            materiais.forEach((m) => {
-                const opt = document.createElement('option');
-                opt.value = m.custo;
-                opt.dataset.nome = m.nome;
-                opt.innerText = `${m.nome} (Custo: R$ ${parseNumber(m.custo).toFixed(2)}/m²)`;
-                select.appendChild(opt);
-            });
-
-            atualizarNomeMaterialSelecionado();
-        }
-
-        function atualizarNomeMaterialSelecionado() {
-            const select = document.getElementById('servico-material');
-            if (select.selectedIndex >= 0 && select.options[select.selectedIndex]) {
-                materialNomeSelecionado = select.options[select.selectedIndex].dataset.nome || "Adesivo / Serviço";
-            }
-        }
-
-        function renderConfigMateriais(materiais) {
-            const container = document.getElementById('lista-materials-config');
-            container.innerHTML = '';
-
-            if (!materiais || materiais.length === 0) {
-                container.innerHTML = '<p class="text-xs text-gray-500 italic">Nenhum material cadastrado.</p>';
-                return;
-            }
-
-            materiais.forEach((m) => {
-                const div = document.createElement('div');
-                div.className = "flex items-center gap-2 bg-black/30 p-2 rounded-xl border border-gray-800";
-                div.innerHTML = `
-                    <span class="flex-1 text-xs text-white font-semibold">${m.nome}</span>
-                    <span class="text-xs text-amber-500 font-bold">R$ ${parseNumber(m.custo).toFixed(2)}/m²</span>
-                    <button type="button" onclick="removerMaterial('${m.id}')" class="text-red-400 hover:text-red-300 text-xs px-2 py-1"><i class="fa-solid fa-trash"></i></button>
-                `;
-                container.appendChild(div);
-            });
-        }
-
-        function setFatorTipo(tipo) {
-            tipoFatorAtual = tipo;
-            ['facil', 'medio', 'dificil'].forEach(b => {
-                const el = document.getElementById(`btn-fator-${b}`);
-                if (b === tipo) {
-                    el.className = "fator-btn py-3.5 px-2 rounded-2xl border border-accentYellow bg-accentYellow text-darkBg font-bold transition-all flex flex-col items-center";
-                } else {
-                    el.className = "fator-btn py-3.5 px-2 rounded-2xl border border-gray-800 bg-black/30 text-gray-400 font-bold transition-all flex flex-col items-center hover:border-gray-700";
-                }
-            });
-        }
-
-        async function calcularOrcamento() {
-            const largura = parseNumber(document.getElementById('medida-largura').value);
-            const altura = parseNumber(document.getElementById('medida-altura').value);
-            const distancia = parseNumber(document.getElementById('medida-distancia').value);
-            
-            atualizarNomeMaterialSelecionado();
-            const selectMat = document.getElementById('servico-material');
-            const custoMaterialM2 = parseNumber(selectMat.value);
-
-            if (largura <= 0 || altura <= 0) {
-                alert("Preencha a Largura e a Altura com valores válidos maior que zero!");
-                return;
-            }
-
-            const margemPct = parseNumber(document.getElementById('cfg-margem').value) || 100;
-            const valorKm = parseNumber(document.getElementById('cfg-valorkm').value) || 1.50;
-            const taxaBaseInstalacao = parseNumber(document.getElementById('cfg-taxabase').value) || 25;
-            
-            const fatoresDificuldade = {
-                facil: parseNumber(document.getElementById('cfg-fator-facil').value),
-                medio: parseNumber(document.getElementById('cfg-fator-medio').value),
-                dificil: parseNumber(document.getElementById('cfg-fator-dificil').value)
-            };
-            
-            areaCalculada = largura * altura;
-            const custoBaseMaterial = areaCalculada * custoMaterialM2;
-            freteCalculado = distancia * valorKm;
-            
-            const fatorPct = parseNumber(fatoresDificuldade[tipoFatorAtual] || 0);
-            const adicionalDificuldade = taxaBaseInstalacao * (fatorPct / 100);
-            const custoInstalacaoFinal = taxaBaseInstalacao + adicionalDificuldade;
-
-            const custoTotalProducao = custoBaseMaterial + freteCalculado + custoInstalacaoFinal;
-            
-            lucroCalculado = custoTotalProducao * (margemPct / 100);
-            valorCalculado = custoTotalProducao + lucroCalculado;
-
-            document.getElementById('resultado-valor').innerText = `R$ ${valorCalculado.toFixed(2).replace('.', ',')}`;
-            document.getElementById('resultado-area').innerText = `${areaCalculada.toFixed(2).replace('.', ',')}m²`;
-            document.getElementById('resultado-frete').innerText = `R$ ${freteCalculado.toFixed(2).replace('.', ',')}`;
-            document.getElementById('resultado-lucro').innerText = `R$ ${lucroCalculado.toFixed(2).replace('.', ',')} (${margemPct}%)`;
-
-            const clienteNome = document.getElementById('cliente-nome').value.trim() || "Cliente Sem Nome";
-
-            if (currentUser && supabase) {
-                try {
-                    await supabase.from('orcamentos').insert([
-                        {
-                            user_id: currentUser.id,
-                            cliente: clienteNome,
-                            valor: valorCalculado,
-                            area: areaCalculada,
-                            lucro_previsto: lucroCalculado
-                        }
-                    ]);
-                } catch(e) {
-                    console.error("Erro ao salvar cálculo no Supabase:", e);
-                }
-            }
-        }
-
-        async function renderHistorico() {
-            const container = document.getElementById('lista-historico');
-            container.innerHTML = '';
-
-            if (currentUser && supabase) {
-                try {
-                    const { data: hist } = await supabase
-                        .from('orcamentos')
-                        .select('*')
-                        .eq('user_id', currentUser.id)
-                        .order('created_at', { ascending: false })
-                        .limit(10);
-
-                    if (hist && hist.length > 0) {
-                        hist.forEach(h => {
-                            const div = document.createElement('div');
-                            div.className = "glass-card p-4 rounded-2xl flex justify-between items-center";
-                            div.innerHTML = `
-                                <div>
-                                    <h4 class="text-xs font-bold text-white">${h.cliente}</h4>
-                                    <p class="text-[10px] text-gray-400">${new Date(h.created_at).toLocaleDateString('pt-BR')} • ${parseNumber(h.area).toFixed(2)}m²</p>
-                                </div>
-                                <span class="text-sm font-extrabold text-accentYellow">R$ ${parseNumber(h.valor).toFixed(2).replace('.', ',')}</span>
-                            `;
-                            container.appendChild(div);
-                        });
-                        return;
-                    }
-                } catch(e) {
-                    console.error("Erro ao carregar histórico:", e);
-                }
-            }
-            container.innerHTML = '<p class="text-xs text-gray-500 text-center py-4">Nenhum orçamento salvo no histórico.</p>';
-        }
-
-        async function limparHistorico() {
-            if (confirm("Deseja apagar todo o seu histórico no banco?")) {
-                if (currentUser && supabase) {
-                    try {
-                        await supabase.from('orcamentos').delete().eq('user_id', currentUser.id);
-                    } catch(e) {
-                        console.error("Erro ao limpar histórico:", e);
-                    }
-                }
-                renderHistorico();
-            }
-        }
-
-        async function adicionarMaterialNovo() {
-            const nomeInput = document.getElementById('add-material-nome');
-            const precoInput = document.getElementById('add-material-preco');
-
-            const nome = nomeInput.value.trim();
-            const custo = parseNumber(precoInput.value);
-
-            if (!nome || custo <= 0) {
-                alert("Preencha o nome e um custo válido do material!");
-                return;
-            }
-
-            if (currentUser && supabase) {
-                try {
-                    const { error } = await supabase.from('materiais').insert([
-                        { user_id: currentUser.id, nome: nome, custo: custo }
-                    ]);
-                    if (error) throw error;
-                    await carregarMateriaisDoBanco();
-                    nomeInput.value = '';
-                    precoInput.value = '';
-                } catch(e) {
-                    console.error("Erro ao salvar material no banco:", e);
-                    alert("Erro ao salvar material no Supabase.");
-                }
-            }
-        }
-
-        async function removerMaterial(materialId) {
-            if (!materialId) return;
-            if (confirm("Deseja realmente excluir este material?")) {
-                if (currentUser && supabase) {
-                    try {
-                        const { error } = await supabase.from('materiais').delete().eq('id', materialId);
-                        if (error) throw error;
-                        await carregarMateriaisDoBanco();
-                    } catch(e) {
-                        console.error("Erro ao remover do banco:", e);
-                        alert("Erro ao excluir material.");
-                    }
-                }
-            }
-        }
-
-        async function salvarConfiguracoes() {
-            if (!currentUser || !supabase) return;
-
-            const empresa = document.getElementById('cfg-empresa').value.trim() || "Sua Empresa";
-            const margemLucro = parseNumber(document.getElementById('cfg-margem').value);
-            const valorKm = parseNumber(document.getElementById('cfg-valorkm').value);
-            const taxaBase = parseNumber(document.getElementById('cfg-taxabase').value);
-            const validade = parseNumber(document.getElementById('cfg-validade').value);
-            const whatsapp = document.getElementById('cfg-whatsapp').value.trim();
-
-            const fatoresDificuldade = {
-                facil: parseNumber(document.getElementById('cfg-fator-facil').value),
-                medio: parseNumber(document.getElementById('cfg-fator-medio').value),
-                dificil: parseNumber(document.getElementById('cfg-fator-dificil').value)
-            };
-
-            try {
-                const { error } = await supabase
-                    .from('perfis')
-                    .update({
-                        empresa,
-                        margem_lucro: margemLucro,
-                        valor_km: valorKm,
-                        taxa_base: taxaBase,
-                        validade,
-                        whatsapp,
-                        fatores_dificuldade: fatoresDificuldade
-                    })
-                    .eq('id', currentUser.id);
 
                 if (error) throw error;
 
-                document.getElementById('lbl-fator-facil').innerText = `+${fatoresDificuldade.facil}%`;
-                document.getElementById('lbl-fator-medio').innerText = `+${fatoresDificuldade.medio}%`;
-                document.getElementById('lbl-fator-dificil').innerText = `+${fatoresDificuldade.dificil}%`;
-
-                alert("Configurações salvas no Supabase com sucesso!");
-            } catch (e) {
-                console.error("Erro ao salvar configurações:", e);
-                alert("Erro ao salvar configurações no servidor.");
+                currentUser = data.user;
+                msgBox.style.color = '#22c55e';
+                msgBox.innerText = 'Login realizado com sucesso!';
+                
+                // Aqui você pode adicionar o redirecionamento ou ocultação do modal de login
+            } catch (error) {
+                msgBox.style.color = '#f43f5e';
+                msgBox.innerText = error.message || 'Erro ao autenticar usuário.';
+            } finally {
+                btnEntrar.disabled = false;
+                btnEntrar.innerText = 'Entrar';
             }
         }
 
-        function enviarWhatsApp() {
-            if (valorCalculado <= 0) {
-                alert("Realize um cálculo antes de enviar!");
+        // Função de Cadastro isolada
+        async function fazerCadastro() {
+            const emailInput = document.getElementById('auth-email');
+            const passwordInput = document.getElementById('auth-password');
+            const msgBox = document.getElementById('auth-msg');
+            const btnCadastrar = document.getElementById('btn-cadastrar');
+
+            if (!emailInput.value || !passwordInput.value) {
+                msgBox.style.color = '#f43f5e';
+                msgBox.innerText = 'Preencha e-mail e senha para criar a conta.';
                 return;
             }
 
-            const numInput = document.getElementById('cfg-whatsapp').value.trim();
-            const limpo = numInput.replace(/\D/g, '');
-            const numWhats = limpo.startsWith('55') ? limpo : `55${limpo}`;
-
-            const empresa = document.getElementById('cfg-empresa').value.trim() || "DN SOLUÇÕES";
-            const validadeDias = document.getElementById('cfg-validade').value.trim() || "3";
-            const cliente = document.getElementById('cliente-nome').value.trim() || "Cliente";
-
-            const texto = `Olá *${cliente}*, segue o orçamento solicitado para *${empresa}*:\n\n` +
-                          `📌 *Serviço/Material:* ${materialNomeSelecionado}\n` +
-                          `📐 *Área Total:* ${areaCalculada.toFixed(2).replace('.', ',')} m²\n` +
-                          `💰 *Valor Total:* R$ ${valorCalculado.toFixed(2).replace('.', ',')}\n` +
-                          `⏱️ *Validade:* ${validadeDias} dias\n\n` +
-                          `Fico à disposição para dúvidas e aprovação!`;
-
-            const url = `https://wa.me/${numWhats}?text=${encodeURIComponent(texto)}`;
-            window.open(url, '_blank');
-        }
-
-        function gerarPDFOrcamento() {
-            if (valorCalculado <= 0) {
-                alert("Realize um cálculo antes de gerar o PDF!");
+            if (passwordInput.value.length < 6) {
+                msgBox.style.color = '#f43f5e';
+                msgBox.innerText = 'A senha precisa ter pelo menos 6 caracteres.';
                 return;
             }
 
-            const empresa = document.getElementById('cfg-empresa').value.trim() || "DN SOLUÇÕES";
-            const validadeDias = document.getElementById('cfg-validade').value.trim() || "3";
-            const cliente = document.getElementById('cliente-nome').value.trim() || "Cliente Especial";
-
-            const total = `R$ ${valorCalculado.toFixed(2).replace('.', ',')}`;
-            const area = `${areaCalculada.toFixed(2).replace('.', ',')} m²`;
-            const validade = `${validadeDias} dias`;
-            const dataHoje = new Date().toLocaleDateString('pt-BR');
-
-            const container = document.getElementById('area-impressao-pdf');
-            if (!container) {
-                alert("Erro técnico: elemento 'area-impressao-pdf' não encontrado.");
+            if (!supabase) {
+                msgBox.style.color = '#f43f5e';
+                msgBox.innerText = 'Erro de conexão com o banco de dados.';
                 return;
             }
 
-            container.innerHTML = `
-                <div style="font-family: Arial, sans-serif; color: #000; padding: 30px; max-width: 750px; margin: auto; background-color: #fff;">
-                    <div style="border-bottom: 3px solid #111; padding-bottom: 12px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: flex-end;">
-                        <div>
-                            <h1 style="margin: 0; font-size: 22px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px;">${empresa}</h1>
-                            <span style="font-size: 12px; color: #555; font-weight: 600;">PROPOSTA COMERCIAL DE SERVIÇOS</span>
-                        </div>
-                        <div style="text-align: right; font-size: 12px; color: #333;">
-                            <p style="margin: 0;">Data: <strong>${dataHoje}</strong></p>
-                            <p style="margin: 3px 0 0 0;">Validade: <strong>${validade}</strong></p>
-                        </div>
-                    </div>
+            btnCadastrar.disabled = true;
+            btnCadastrar.innerText = 'Criando...';
+            msgBox.innerText = '';
 
-                    <div style="background: #f8fafc; border: 1px solid #e2e8f0; padding: 12px 16px; margin-bottom: 20px; font-size: 13px; border-radius: 6px;">
-                        <p style="margin: 0; color: #1e293b;"><strong>Cliente Atendido:</strong> ${cliente}</p>
-                    </div>
+            try {
+                const { data, error } = await supabase.auth.signUp({
+                    email: emailInput.value.trim(),
+                    password: passwordInput.value
+                });
 
-                    <table style="width: 100%; border-collapse: collapse; margin-bottom: 25px; font-size: 13px;">
-                        <thead>
-                            <tr style="background: #0f172a; color: #ffffff;">
-                                <th style="padding: 10px 12px; text-align: left; font-weight: 700;">Descrição do Serviço</th>
-                                <th style="padding: 10px 12px; text-align: right; font-weight: 700;">Dimensão / Área</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr>
-                                <td style="padding: 12px; border-bottom: 1px solid #e2e8f0;">
-                                    <strong style="color: #0f172a; font-size: 14px;">${materialNomeSelecionado}</strong><br>
-                                    <span style="font-size: 11px; color: #64748b;">Incluso fornecimento de material, confecção e instalação especializada.</span>
-                                </td>
-                                <td style="padding: 12px; border-bottom: 1px solid #e2e8f0; text-align: right; font-weight: 700; font-size: 14px; color: #0f172a;">
-                                    ${area}
-                                </td>
-                            </tr>
-                        </tbody>
-                    </table>
+                if (error) throw error;
 
-                    <div style="border: 2px solid #0f172a; padding: 16px; text-align: right; border-radius: 8px; margin-top: 20px; background-color: #f8fafc;">
-                        <span style="font-size: 11px; text-transform: uppercase; font-weight: 700; color: #475569; letter-spacing: 0.5px;">Valor Total do Investimento</span>
-                        <div style="font-size: 28px; font-weight: 900; margin-top: 4px; color: #0f172a;">${total}</div>
-                    </div>
-
-                    <div style="margin-top: 30px; font-size: 11px; color: #64748b; border-top: 1px solid #cbd5e1; padding-top: 12px; line-height: 1.5;">
-                        <p style="margin: 0;">• <strong>Pagamento:</strong> Condições a combinar no momento da aprovação do pedido.</p>
-                        <p style="margin: 3px 0 0 0;">• A execução do serviço está sujeita à confirmação final das medidas no local.</p>
-                    </div>
-                </div>
-            `;
-
-            window.print();
+                msgBox.style.color = '#22c55e';
+                msgBox.innerText = 'Conta criada! Verifique seu e-mail se necessário.';
+            } catch (error) {
+                msgBox.style.color = '#f43f5e';
+                msgBox.innerText = error.message || 'Erro ao cadastrar usuário.';
+            } finally {
+                btnCadastrar.disabled = false;
+                btnCadastrar.innerText = 'Criar Conta';
+            }
         }
     </script>
-
-    <div id="area-impressao-pdf"></div>
-
 </body>
 </html>
