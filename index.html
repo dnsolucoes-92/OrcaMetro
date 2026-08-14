@@ -63,7 +63,7 @@
         const SUPABASE_URL = 'https://ezxehftahskaoiahkils.supabase.co';
         const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImV6eGVoZnRhaHNrYW9pYWhraWxzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODQ3NzA0NDMsImV4cCI6MjEwMDM0NjQ0M30.f1dbtC0JhGyWxH7u4atMu2htCZiLQf20-j2VRIJnW7M';
         
-        supabase = null;
+        let supabase = null;
 
         // Inicialização defensiva do Supabase para evitar travamentos silenciosos
         try {
@@ -74,16 +74,6 @@
             }
         } catch (erroInit) {
             console.error("Falha crítica ao conectar com o Supabase:", erroInit);
-        }
-            </script
-        
-            window.addEventListener('DOMContentLoaded', () => {
-                const msg = document.getElementById('auth-msg');
-                if (msg) {
-                    msg.style.color = '#f43f5e';
-                    msg.innerText = 'Erro ao carregar serviços de rede. Verifique sua conexão.';
-                }
-            });
         }
 
         let currentUser = null;
@@ -155,8 +145,6 @@
                 currentUser = data.user;
                 msgBox.style.color = '#22c55e';
                 msgBox.innerText = 'Login realizado com sucesso!';
-                
-                // Aqui você pode adicionar o redirecionamento ou ocultação do modal de login
             } catch (error) {
                 msgBox.style.color = '#f43f5e';
                 msgBox.innerText = error.message || 'Erro ao autenticar usuário.';
