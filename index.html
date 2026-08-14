@@ -3,204 +3,4073 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DN Soluções - Sistema de Orçamentos</title>
-    <!-- Tailwind CSS CDN -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <!-- FontAwesome para Ícones -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- Supabase JS SDK -->
+    <title>OrçaMetro - Profissional V3.3.1</title>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700;800&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-</head>
-<body class="bg-slate-900 text-slate-100 min-h-screen flex flex-col items-center justify-center p-4">
 
-    <!-- Modal de Autenticação / Login -->
-    <div id="auth-modal" class="w-full max-w-md bg-slate-800 rounded-xl shadow-2xl p-6 border border-slate-700">
-        <div class="text-center mb-6">
-            <h1 class="text-2xl font-bold tracking-wide text-yellow-400">DN SOLUÇÕES</h1>
-            <p class="text-sm text-slate-400 mt-1">Faça login para acessar o sistema</p>
-        </div>
-
-        <form id="auth-form" onsubmit="event.preventDefault(); fazerLogin();" class="space-y-4">
-            <!-- Campo de E-mail -->
-            <div>
-                <label class="block text-xs font-semibold text-slate-300 mb-1 uppercase tracking-wider">E-mail</label>
-                <input type="email" id="auth-email" placeholder="seu@email.com" 
-                    class="w-full px-4 py-2.5 bg-slate-900 border border-slate-700 rounded-lg focus:outline-none focus:border-yellow-500 text-slate-100 text-sm">
-            </div>
-
-            <!-- Campo de Senha com Olhinho -->
-            <div>
-                <label class="block text-xs font-semibold text-slate-300 mb-1 uppercase tracking-wider">Senha</label>
-                <div class="relative">
-                    <input type="password" id="auth-password" placeholder="Sua senha" 
-                        class="w-full px-4 py-2.5 bg-slate-900 border border-slate-700 rounded-lg focus:outline-none focus:border-yellow-500 text-slate-100 text-sm pr-10">
-                    <button type="button" onclick="togglePasswordVisibility()" 
-                        class="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-yellow-400 focus:outline-none">
-                        <i id="eye-icon" class="fa-solid fa-eye text-sm"></i>
-                    </button>
-                </div>
-            </div>
-
-            <!-- Mensagens de Erro/Alerta -->
-            <div id="auth-msg" class="text-xs font-medium text-center min-h-[1.25rem]"></div>
-
-            <!-- Botões de Ação -->
-            <div class="space-y-2.5 pt-2">
-                <button type="submit" id="btn-entrar" 
-                    class="w-full py-2.5 bg-yellow-500 hover:bg-yellow-500 text-white font-semibold rounded-lg shadow-md transition duration-200 text-sm active:scale-[0.98]">
-                    Entrar
-                </button>
-                <button type="button" id="btn-cadastrar" onclick="fazerCadastro()" 
-                    class="w-full py-2.5 bg-slate-700 hover:bg-slate-600 text-slate-200 font-semibold rounded-lg transition duration-200 text-sm active:scale-[0.98]">
-                    Criar Conta
-                </button>
-            </div>
-        </form>
-    </div>
-
-    <!-- Script Principal Blindado -->
+    <script src="https://cdn.tailwindcss.com"></script>
     <script>
-        const SUPABASE_URL = 'https://ezxehftahskaoiahkils.supabase.co';
-        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImV6eGVoZnRhaHNrYW9pYWhraWxzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODQ3NzA0NDMsImV4cCI6MjEwMDM0NjQ0M30.f1dbtC0JhGyWxH7u4atMu2htCZiLQf20-j2VRIJnW7M';
-        
-        let supabase = null;
-
-        // Inicialização defensiva do Supabase para evitar travamentos silenciosos
-        try {
-            if (window.supabase) {
-                supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-            } else {
-                throw new Error("SDK do Supabase não carregado.");
-            }
-        } catch (erroInit) {
-            console.error("Falha crítica ao conectar com o Supabase:", erroInit);
-        }
-
-        let currentUser = null;
-        let tipoFatorAtual = 'facil';
-        let valorCalculado = 0.0;
-        let areaCalculada = 0.0;
-        let lucroCalculado = 0.0;
-        let freteCalculado = 0.0;
-        let materialNomeSelecionado = "Adesivo / Serviço";
-
-        const configPadrao = {
-            empresa: "DN SOLUÇÕES",
-            taxaBase: 25,
-            validade: 3,
-            whatsapp: "11939386682",
-            margemLucro: 100,
-            valorKm: 1.50,
-            fatoresDificuldade: { facil: 0, medio: 40, dificil: 80 }
-        };
-
-        // Função isolada do botão de senha (olhinho) - Funciona 100% independente de rede
-        function togglePasswordVisibility() {
-            const passwordInput = document.getElementById('auth-password');
-            const eyeIcon = document.getElementById('eye-icon');
-            if (!passwordInput || !eyeIcon) return;
-            
-            if (passwordInput.type === 'password') {
-                passwordInput.type = 'text';
-                eyeIcon.classList.remove('fa-eye');
-                eyeIcon.classList.add('fa-eye-slash');
-            } else {
-                passwordInput.type = 'password';
-                eyeIcon.classList.remove('fa-eye-slash');
-                eyeIcon.classList.add('fa-eye');
-            }
-        }
-
-        // Função de Login segura com controle de estado de botões
-        async function fazerLogin() {
-            const emailInput = document.getElementById('auth-email');
-            const passwordInput = document.getElementById('auth-password');
-            const msgBox = document.getElementById('auth-msg');
-            const btnEntrar = document.getElementById('btn-entrar');
-
-            if (!emailInput.value || !passwordInput.value) {
-                msgBox.style.color = '#f43f5e';
-                msgBox.innerText = 'Preencha e-mail e senha para continuar.';
-                return;
-            }
-
-            if (!supabase) {
-                msgBox.style.color = '#f43f5e';
-                msgBox.innerText = 'Erro de conexão com o banco de dados.';
-                return;
-            }
-
-            btnEntrar.disabled = true;
-            btnEntrar.innerText = 'Entrando...';
-            msgBox.innerText = '';
-
-            try {
-                const { data, error } = await supabase.auth.signInWithPassword({
-                    email: emailInput.value.trim(),
-                    password: passwordInput.value
-                });
-
-                if (error) throw error;
-
-                currentUser = data.user;
-                msgBox.style.color = '#22c55e';
-                msgBox.innerText = 'Login realizado com sucesso!';
-            } catch (error) {
-                msgBox.style.color = '#f43f5e';
-                msgBox.innerText = error.message || 'Erro ao autenticar usuário.';
-            } finally {
-                btnEntrar.disabled = false;
-                btnEntrar.innerText = 'Entrar';
-            }
-        }
-
-        // Função de Cadastro isolada
-        async function fazerCadastro() {
-            const emailInput = document.getElementById('auth-email');
-            const passwordInput = document.getElementById('auth-password');
-            const msgBox = document.getElementById('auth-msg');
-            const btnCadastrar = document.getElementById('btn-cadastrar');
-
-            if (!emailInput.value || !passwordInput.value) {
-                msgBox.style.color = '#f43f5e';
-                msgBox.innerText = 'Preencha e-mail e senha para criar a conta.';
-                return;
-            }
-
-            if (passwordInput.value.length < 6) {
-                msgBox.style.color = '#f43f5e';
-                msgBox.innerText = 'A senha precisa ter pelo menos 6 caracteres.';
-                return;
-            }
-
-            if (!supabase) {
-                msgBox.style.color = '#f43f5e';
-                msgBox.innerText = 'Erro de conexão com o banco de dados.';
-                return;
-            }
-
-            btnCadastrar.disabled = true;
-            btnCadastrar.innerText = 'Criando...';
-            msgBox.innerText = '';
-
-            try {
-                const { data, error } = await supabase.auth.signUp({
-                    email: emailInput.value.trim(),
-                    password: passwordInput.value
-                });
-
-                if (error) throw error;
-
-                msgBox.style.color = '#22c55e';
-                msgBox.innerText = 'Conta criada! Verifique seu e-mail se necessário.';
-            } catch (error) {
-                msgBox.style.color = '#f43f5e';
-                msgBox.innerText = error.message || 'Erro ao cadastrar usuário.';
-            } finally {
-                btnCadastrar.disabled = false;
-                btnCadastrar.innerText = 'Criar Conta';
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['"Plus Jakarta Sans"', 'sans-serif'],
+                        outfit: ['Outfit', 'sans-serif'],
+                    },
+                    colors: {
+                        darkBg: '#0b0f19',
+                        cardBg: '#111827',
+                        innerCard: '#1f2937',
+                        accentYellow: '#f59e0b',
+                        accentYellowHover: '#d97706',
+                    }
+                }
             }
         }
     </script>
+    
+    <style>
+        body { background-color: #0b0f19; color: #e5e7eb; }
+        .glass-card {
+            background: rgba(17, 24, 39, 0.75);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+        .fator-btn-active {
+            background-color: #f59e0b !important;
+            color: #0b0f19 !important;
+            border-color: #f59e0b !important;
+        }
+        @media screen { #area-impressao-pdf { display: none !important; } }
+        @media print {
+            body > *:not(#area-impressao-pdf) { display: none !important; }
+            #area-impressao-pdf { 
+                display: block !important; 
+                width: 100% !important; 
+                background: #ffffff !important; 
+                color: #000000 !important; 
+                padding: 0;
+                margin: 0;
+            }
+            html, body {
+                background: #ffffff !important;
+                color: #000000 !important;
+                margin: 0;
+                padding: 0;
+            }
+        }
+    </style>
+</head>
+
+<body class="min-h-screen pb-16 font-sans antialiased">
+
+    <!-- LOGIN -->
+    <div id="auth-modal" class="fixed inset-0 z-[99999] flex items-center justify-center bg-slate-950/98 p-4 backdrop-blur-md">
+        <div class="glass-card w-full max-w-sm rounded-3xl p-6 sm:p-8 text-center shadow-2xl border border-slate-800">
+
+            <div class="mb-4 flex items-center justify-center gap-2">
+                <div class="flex h-11 w-11 items-center justify-center rounded-2xl bg-gradient-to-br from-amber-400 to-amber-600 text-slate-950 shadow-lg shadow-amber-500/20">
+                    <i class="fa-solid fa-chart-simple text-xl"></i>
+                </div>
+
+                <h2 class="text-2xl font-extrabold tracking-tight text-white font-outfit">
+                    Orça<span class="text-amber-500">Metro</span>
+                </h2>
+            </div>
+
+            <p class="mb-6 text-xs text-slate-400">
+                Acesse sua conta para utilizar o sistema
+            </p>
+            
+            <div class="space-y-3.5">
+
+                <input
+                    type="email"
+                    id="auth-email"
+                    placeholder="Seu E-mail"
+                    autocomplete="email"
+                    class="w-full rounded-xl border border-slate-800 bg-black/50 px-4 py-3 text-sm text-white placeholder-slate-500 focus:border-amber-500 focus:outline-none transition-all"
+                >
+                
+                <div class="relative w-full">
+
+                    <input
+                        type="password"
+                        id="auth-password"
+                        placeholder="Sua Senha"
+                        autocomplete="current-password"
+                        class="w-full rounded-xl border border-slate-800 bg-black/50 px-4 py-3 pr-12 text-sm text-white placeholder-slate-500 focus:border-amber-500 focus:outline-none transition-all"
+                    >
+
+                    <button
+                        type="button"
+                        data-action="togglePasswordVisibility"
+                        aria-label="Mostrar ou ocultar senha"
+                        class="absolute inset-y-0 right-0 flex items-center pr-4 text-slate-400 hover:text-white"
+                    >
+                        <i id="eye-icon" class="fa-solid fa-eye text-xs"></i>
+                    </button>
+
+                </div>
+
+                <button
+                    type="button"
+                    id="btn-entrar"
+                    data-action="fazerLogin"
+                    class="w-full rounded-xl bg-amber-500 py-3.5 text-sm font-bold text-slate-950 hover:bg-amber-400 transition-all shadow-lg shadow-amber-500/10 active:scale-[0.98]"
+                >
+                    Entrar
+                </button>
+                
+                <button
+                    type="button"
+                    id="btn-cadastrar"
+                    data-action="fazerCadastro"
+                    class="w-full rounded-xl border border-slate-800 bg-transparent py-3 text-sm font-semibold text-slate-400 hover:text-white transition-all active:scale-[0.98]"
+                >
+                    Criar Conta
+                </button>
+
+            </div>
+            
+            <p
+                id="auth-msg"
+                class="mt-4 min-h-[1.25rem] text-xs font-semibold leading-relaxed text-rose-500"
+            ></p>
+
+        </div>
+    </div>
+
+
+    <!-- PAYWALL -->
+    <div id="paywall-modal" class="fixed inset-0 z-[9999] hidden flex items-center justify-center bg-slate-950/95 p-4 backdrop-blur-md">
+
+        <div class="glass-card w-full max-w-sm rounded-3xl p-6 text-center shadow-2xl border border-amber-500/30">
+
+            <div class="w-16 h-16 bg-amber-500/10 border border-amber-500/30 rounded-2xl flex items-center justify-center mx-auto mb-4 text-amber-500 text-2xl">
+                <i class="fa-solid fa-crown"></i>
+            </div>
+
+            <h3 class="text-xl font-extrabold text-white font-outfit mb-2">
+                Acesso Vitalício Necessário
+            </h3>
+
+            <p class="text-xs text-slate-400 mb-6 leading-relaxed">
+                Sua conta está registrada! Adquira a Licença Vitalícia
+                (pagamento único via PIX, Cartão ou Boleto)
+                para liberar seu acesso sem mensalidades.
+            </p>
+
+            <a
+                id="btn-comprar-asaas"
+                href="https://www.asaas.com/c/ahrsd2kdm8jcmqqq"
+                target="_blank"
+                rel="noopener noreferrer"
+                class="block w-full py-4 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-black rounded-2xl shadow-lg text-sm tracking-wide transition-all uppercase mb-3"
+            >
+                <i class="fa-solid fa-bolt mr-2"></i>
+                Garantir Licença (R$ 127,00)
+            </a>
+
+            <button
+                type="button"
+                data-action="fazerLogout"
+                class="text-xs text-slate-500 hover:text-slate-300 font-semibold transition-all"
+            >
+                Sair da conta
+            </button>
+
+        </div>
+    </div>
+
+
+    <!-- CABEÇALHO -->
+    <header class="p-6 max-w-md mx-auto flex items-center justify-between border-b border-gray-900/80">
+
+        <div class="flex items-center gap-3">
+
+            <div class="bg-gradient-to-br from-amber-400 to-amber-600 text-darkBg font-black text-xl flex items-center justify-center w-11 h-11 rounded-2xl shadow-lg shadow-amber-500/20">
+                <i class="fa-solid fa-chart-simple text-darkBg text-lg"></i>
+            </div>
+
+            <div>
+
+                <h1 class="text-xl font-extrabold text-white tracking-wide font-outfit">
+                    Orça<span class="text-accentYellow">Metro</span>
+                </h1>
+
+                <p class="text-[10px] text-amber-500 font-bold tracking-widest uppercase">
+                    MVP Comercial V3.3.1 - Vitalício
+                </p>
+
+            </div>
+
+        </div>
+
+        <div class="flex items-center gap-2">
+
+            <div
+                id="badge-status"
+                class="bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-[10px] font-bold px-3 py-1 rounded-full uppercase tracking-wider"
+            >
+                Online
+            </div>
+
+            <button
+                type="button"
+                id="btn-logout"
+                data-action="fazerLogout"
+                title="Sair da Conta"
+                class="hidden text-gray-400 hover:text-rose-400 transition-colors p-1 ml-1"
+            >
+                <i class="fa-solid fa-right-from-bracket text-base"></i>
+            </button>
+
+        </div>
+
+    </header>
+
+
+    <!-- NAVEGAÇÃO -->
+    <nav class="max-w-md mx-auto px-5 mt-6">
+
+        <div class="bg-black/40 p-1.5 rounded-2xl flex gap-1 border border-gray-800/60">
+
+            <button
+                type="button"
+                id="tab-orcamento"
+                data-action="switchTab"
+                data-tab="orcamento"
+                class="flex-1 py-3 text-xs font-bold rounded-xl transition-all duration-300 bg-accentYellow text-darkBg shadow-md"
+            >
+                <i class="fa-solid fa-calculator mr-1.5"></i>
+                Orçamento
+            </button>
+
+            <button
+                type="button"
+                id="tab-historico"
+                data-action="switchTab"
+                data-tab="historico"
+                class="flex-1 py-3 text-xs font-bold rounded-xl transition-all duration-300 text-gray-400 hover:text-white"
+            >
+                <i class="fa-solid fa-clock-rotate-left mr-1.5"></i>
+                Histórico
+            </button>
+
+            <button
+                type="button"
+                id="tab-configurar"
+                data-action="switchTab"
+                data-tab="configurar"
+                class="flex-1 py-3 text-xs font-bold rounded-xl transition-all duration-300 text-gray-400 hover:text-white"
+            >
+                <i class="fa-solid fa-gear mr-1.5"></i>
+                Configurar
+            </button>
+
+        </div>
+
+    </nav>
+
+
+    <!-- ORÇAMENTO -->
+    <main id="view-orcamento" class="max-w-md mx-auto px-5 mt-6 space-y-5">
+
+        <section class="glass-card p-5 rounded-3xl space-y-4 shadow-xl">
+
+            <div>
+
+                <label class="block text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-2">
+                    Nome do Cliente (Opcional)
+                </label>
+
+                <div class="relative">
+
+                    <span class="absolute inset-y-0 left-0 flex items-center pl-3.5 pointer-events-none text-gray-500">
+                        <i class="fa-solid fa-user text-xs"></i>
+                    </span>
+
+                    <input
+                        type="text"
+                        id="cliente-nome"
+                        placeholder="Ex: Nome do cliente"
+                        class="w-full bg-black/40 border border-gray-800 rounded-xl pl-9 pr-4 py-3 text-sm text-white placeholder-gray-600 focus:outline-none focus:border-accentYellow transition-all"
+                    >
+
+                </div>
+
+            </div>
+
+
+            <div>
+
+                <label class="block text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-2">
+                    Tipo de Adesivo / Serviço
+                </label>
+
+                <div class="relative">
+
+                    <span class="absolute inset-y-0 left-0 flex items-center pl-3.5 pointer-events-none text-gray-500">
+                        <i class="fa-solid fa-scroll text-xs"></i>
+                    </span>
+
+                    <select
+                        id="servico-material"
+                        data-action="atualizarNomeMaterialSelecionado"
+                        class="w-full bg-black/40 border border-gray-800 rounded-xl pl-9 pr-4 py-3 text-sm text-white focus:outline-none focus:border-accentYellow transition-all appearance-none"
+                    ></select>
+
+                    <span class="absolute inset-y-0 right-0 flex items-center pr-3.5 pointer-events-none text-gray-500">
+                        <i class="fa-solid fa-chevron-down text-xs"></i>
+                    </span>
+
+                </div>
+
+            </div>
+
+        </section>
+
+
+        <section class="glass-card p-5 rounded-3xl shadow-xl space-y-4">
+
+            <h2 class="text-[10px] font-bold text-gray-400 uppercase tracking-wider">
+                <i class="fa-solid fa-ruler-combined mr-1.5 text-accentYellow"></i>
+                Dimensões e Logística
+            </h2>
+
+            <div class="grid grid-cols-2 gap-4">
+
+                <div>
+
+                    <label class="block text-xs font-semibold text-gray-400 mb-2">
+                        Largura (Metros)
+                    </label>
+
+                    <input
+                        type="text"
+                        id="medida-largura"
+                        placeholder="0,00"
+                        inputmode="decimal"
+                        class="w-full bg-black/40 border border-gray-800 rounded-xl px-4 py-3 text-white text-center text-lg font-bold font-outfit focus:outline-none focus:border-accentYellow transition-all"
+                    >
+
+                </div>
+
+                <div>
+
+                    <label class="block text-xs font-semibold text-gray-400 mb-2">
+                        Altura (Metros)
+                    </label>
+
+                    <input
+                        type="text"
+                        id="medida-altura"
+                        placeholder="0,00"
+                        inputmode="decimal"
+                        class="w-full bg-black/40 border border-gray-800 rounded-xl px-4 py-3 text-white text-center text-lg font-bold font-outfit focus:outline-none focus:border-accentYellow transition-all"
+                    >
+
+                </div>
+
+            </div>
+
+
+            <div>
+
+                <label class="block text-xs font-semibold text-gray-400 mb-2">
+                    Distância do Deslocamento (KM - Ida e Volta)
+                </label>
+
+                <div class="relative">
+
+                    <span class="absolute inset-y-0 left-0 flex items-center pl-3.5 pointer-events-none text-gray-500">
+                        <i class="fa-solid fa-route text-xs"></i>
+                    </span>
+
+                    <input
+                        type="text"
+                        id="medida-distancia"
+                        placeholder="Deixe 0 se não houver viagem"
+                        inputmode="decimal"
+                        class="w-full bg-black/40 border border-gray-800 rounded-xl pl-9 pr-4 py-3 text-sm text-white focus:outline-none focus:border-accentYellow transition-all"
+                    >
+
+                </div>
+
+            </div>
+
+        </section>
+
+
+        <section class="glass-card p-5 rounded-3xl shadow-xl">
+
+            <h2 class="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-3">
+                <i class="fa-solid fa-circle-exclamation mr-1.5 text-accentYellow"></i>
+                Grau de Instalação
+            </h2>
+
+            <div class="grid grid-cols-3 gap-2">
+
+                <button
+                    id="btn-fator-facil"
+                    type="button"
+                    data-action="setFatorTipo"
+                    data-tipo="facil"
+                    class="fator-btn py-3.5 px-2 rounded-2xl border border-accentYellow bg-accentYellow text-darkBg font-bold transition-all flex flex-col items-center"
+                >
+                    <span class="text-sm font-outfit">Fácil</span>
+                    <span id="lbl-fator-facil" class="text-[10px] opacity-80 mt-1 font-normal">
+                        +0%
+                    </span>
+                </button>
+
+                <button
+                    id="btn-fator-medio"
+                    type="button"
+                    data-action="setFatorTipo"
+                    data-tipo="medio"
+                    class="fator-btn py-3.5 px-2 rounded-2xl border border-gray-800 bg-black/30 text-gray-400 font-bold transition-all flex flex-col items-center hover:border-gray-700"
+                >
+                    <span class="text-sm font-outfit">Médio</span>
+                    <span id="lbl-fator-medio" class="text-[10px] opacity-60 mt-1 font-normal">
+                        +40%
+                    </span>
+                </button>
+
+                <button
+                    id="btn-fator-dificil"
+                    type="button"
+                    data-action="setFatorTipo"
+                    data-tipo="dificil"
+                    class="fator-btn py-3.5 px-2 rounded-2xl border border-gray-800 bg-black/30 text-gray-400 font-bold transition-all flex flex-col items-center hover:border-gray-700"
+                >
+                    <span class="text-sm font-outfit">Difícil</span>
+                    <span id="lbl-fator-dificil" class="text-[10px] opacity-60 mt-1 font-normal">
+                        +80%
+                    </span>
+                </button>
+
+            </div>
+
+        </section>
+
+
+        <div class="py-2">
+
+            <button
+                type="button"
+                data-action="calcularOrcamento"
+                class="w-full py-5 px-6 bg-gradient-to-r from-amber-500 via-amber-400 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-darkBg font-extrabold rounded-2xl shadow-xl shadow-amber-500/20 active:scale-[0.98] transition-all uppercase tracking-widest text-sm flex items-center justify-center gap-3 border border-amber-300/30"
+            >
+                <i class="fa-solid fa-calculator text-base"></i>
+                <span>Calcular Orçamento Justo</span>
+            </button>
+
+        </div>
+
+
+        <section class="glass-card p-6 rounded-3xl text-center shadow-2xl border-amber-500/20 relative overflow-hidden">
+
+            <p class="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-2">
+                Valor Total ao Cliente
+            </p>
+
+            <div
+                id="resultado-valor"
+                class="text-4xl font-black text-accentYellow tracking-tight mb-2 font-outfit"
+            >
+                R$ 0,00
+            </div>
+            
+            <div class="bg-black/30 border border-gray-800/80 rounded-2xl p-3 mb-6 flex flex-col gap-1 text-xs text-gray-400">
+
+                <div class="flex justify-between px-2">
+                    <span>Área Realizada:</span>
+                    <strong id="resultado-area" class="text-gray-200">
+                        0,00m²
+                    </strong>
+                </div>
+
+                <div class="flex justify-between px-2">
+                    <span>Adicional Frete/Rodagem:</span>
+                    <strong id="resultado-frete" class="text-gray-200">
+                        R$ 0,00
+                    </strong>
+                </div>
+
+                <div class="flex justify-between px-2 pt-1 border-t border-gray-800/50">
+
+                    <span class="text-emerald-400 font-semibold">
+                        <i class="fa-solid fa-wallet mr-1"></i>
+                        Lucro Líquido Previsto:
+                    </span>
+
+                    <strong id="resultado-lucro" class="text-emerald-400">
+                        R$ 0,00 (0%)
+                    </strong>
+
+                </div>
+
+            </div>
+            
+            <button
+                type="button"
+                data-action="enviarWhatsApp"
+                class="w-full py-4 bg-emerald-600 hover:bg-emerald-500 text-white font-extrabold rounded-2xl transition-all flex items-center justify-center gap-2 shadow-lg active:scale-[0.98]"
+            >
+                <i class="fa-brands fa-whatsapp text-lg"></i>
+                Enviar Mensagem para o Cliente
+            </button>
+
+            <button
+                type="button"
+                data-action="gerarPDFOrcamento"
+                class="w-full py-4 mt-3 bg-amber-500 hover:bg-amber-400 text-slate-950 font-extrabold rounded-2xl transition-all flex items-center justify-center gap-2 shadow-lg active:scale-[0.98]"
+            >
+                <i class="fa-solid fa-file-pdf text-lg"></i>
+                Baixar Proposta em PDF
+            </button>
+
+        </section>
+
+    </main>
+
+
+    <!-- HISTÓRICO -->
+    <main id="view-historico" class="max-w-md mx-auto px-5 mt-6 space-y-4 hidden">
+
+        <div class="flex items-center justify-between mb-2">
+
+            <h2 class="text-xs font-bold text-gray-400 uppercase tracking-wider">
+                <i class="fa-solid fa-list-check mr-1.5 text-accentYellow"></i>
+                Últimos Cálculos
+            </h2>
+
+            <button
+                type="button"
+                data-action="limparHistorico"
+                class="text-[10px] text-red-400 hover:text-red-300 font-bold"
+            >
+                <i class="fa-solid fa-trash-can mr-1"></i>
+                Limpar Tudo
+            </button>
+
+        </div>
+
+        <div id="lista-historico" class="space-y-3"></div>
+
+    </main>
+
+
+    <!-- CONFIGURAÇÕES -->
+    <main id="view-configurar" class="max-w-md mx-auto px-5 mt-6 space-y-5 hidden">
+
+        <section class="glass-card p-5 rounded-3xl space-y-4">
+
+            <h2 class="text-[10px] font-bold text-gray-400 uppercase tracking-wider">
+                <i class="fa-solid fa-building mr-1.5 text-accentYellow"></i>
+                Identidade da Oficina
+            </h2>
+
+            <div>
+
+                <label class="block text-xs font-semibold text-gray-400 mb-2">
+                    Nome Comercial
+                </label>
+
+                <input
+                    type="text"
+                    id="cfg-empresa"
+                    placeholder="Seu nome"
+                    class="w-full bg-black/40 border border-gray-800 rounded-xl px-4 py-3 text-sm text-white focus:outline-none"
+                >
+
+            </div>
+
+        </section>
+
+
+        <section class="glass-card p-5 rounded-3xl space-y-4">
+
+            <h2 class="text-[10px] font-bold text-gray-400 uppercase tracking-wider">
+                <i class="fa-solid fa-tags mr-1.5 text-accentYellow"></i>
+                Preço de Custo dos Adesivos (/m²)
+            </h2>
+
+            <p class="text-[10px] text-amber-500 -mt-2">
+                Insira aqui o valor real cobrado pelo seu fornecedor gráfico.
+            </p>
+            
+            <div id="lista-materials-config" class="space-y-3"></div>
+
+            <div class="pt-4 border-t border-gray-800/80">
+
+                <p class="text-[10px] font-bold text-gray-400 uppercase mb-2">
+                    Adicionar Novo Material (Custo)
+                </p>
+
+                <div class="flex gap-2">
+
+                    <input
+                        type="text"
+                        id="add-material-nome"
+                        placeholder="Ex: Vinil Jateado"
+                        class="flex-1 bg-black/40 border border-gray-800 rounded-xl px-3.5 py-2.5 text-xs text-white"
+                    >
+
+                    <input
+                        type="text"
+                        id="add-material-preco"
+                        placeholder="Custo/m²"
+                        inputmode="decimal"
+                        class="w-20 bg-black/40 border border-gray-800 rounded-xl px-2 py-2.5 text-xs text-white text-center"
+                    >
+
+                    <button
+                        type="button"
+                        data-action="adicionarMaterialNovo"
+                        class="bg-accentYellow text-darkBg text-xs font-bold px-3.5 py-2.5 rounded-xl"
+                    >
+                        <i class="fa-solid fa-plus"></i>
+                    </button>
+
+                </div>
+
+            </div>
+
+        </section>
+
+
+        <section class="glass-card p-5 rounded-3xl space-y-4">
+
+            <h2 class="text-[10px] font-bold text-gray-400 uppercase tracking-wider">
+                <i class="fa-solid fa-sliders mr-1.5 text-accentYellow"></i>
+                Fatores de Grau de Instalação (%)
+            </h2>
+
+            <div class="grid grid-cols-3 gap-3">
+
+                <div>
+
+                    <label class="block text-[10px] font-semibold text-gray-400 mb-1 text-center">
+                        Fácil (%)
+                    </label>
+
+                    <input
+                        type="text"
+                        id="cfg-fator-facil"
+                        inputmode="decimal"
+                        class="w-full bg-black/40 border border-gray-800 rounded-xl px-2 py-2.5 text-xs text-white font-bold text-center focus:outline-none"
+                    >
+
+                </div>
+
+                <div>
+
+                    <label class="block text-[10px] font-semibold text-gray-400 mb-1 text-center">
+                        Médio (%)
+                    </label>
+
+                    <input
+                        type="text"
+                        id="cfg-fator-medio"
+                        inputmode="decimal"
+                        class="w-full bg-black/40 border border-gray-800 rounded-xl px-2 py-2.5 text-xs text-white font-bold text-center focus:outline-none"
+                    >
+
+                </div>
+
+                <div>
+
+                    <label class="block text-[10px] font-semibold text-gray-400 mb-1 text-center">
+                        Difícil (%)
+                    </label>
+
+                    <input
+                        type="text"
+                        id="cfg-fator-dificil"
+                        inputmode="decimal"
+                        class="w-full bg-black/40 border border-gray-800 rounded-xl px-2 py-2.5 text-xs text-white font-bold text-center focus:outline-none"
+                    >
+
+                </div>
+
+            </div>
+
+        </section>
+
+
+        <section class="glass-card p-5 rounded-3xl space-y-4">
+
+            <h2 class="text-[10px] font-bold text-gray-400 uppercase tracking-wider">
+                <i class="fa-solid fa-circle-dollar-to-slot mr-1.5 text-accentYellow"></i>
+                Regras de Markup e Logística
+            </h2>
+
+            <div>
+
+                <label class="block text-xs font-semibold text-gray-400 mb-2">
+                    Margem de Lucro Desejada (%)
+                </label>
+
+                <input
+                    type="text"
+                    id="cfg-margem"
+                    inputmode="decimal"
+                    class="w-full bg-black/40 border border-gray-800 rounded-xl px-4 py-3 text-sm text-emerald-400 font-bold focus:outline-none"
+                >
+
+            </div>
+
+            <div>
+
+                <label class="block text-xs font-semibold text-gray-400 mb-2">
+                    Valor Cobrado por KM Rodado (R$)
+                </label>
+
+                <input
+                    type="text"
+                    id="cfg-valorkm"
+                    inputmode="decimal"
+                    class="w-full bg-black/40 border border-gray-800 rounded-xl px-4 py-3 text-sm text-white font-bold focus:outline-none"
+                >
+
+            </div>
+
+            <div>
+
+                <label class="block text-xs font-semibold text-gray-400 mb-2">
+                    Taxa Base de Instalação (R$)
+                </label>
+
+                <input
+                    type="text"
+                    id="cfg-taxabase"
+                    inputmode="decimal"
+                    class="w-full bg-black/40 border border-gray-800 rounded-xl px-4 py-3 text-sm text-white focus:outline-none"
+                >
+
+            </div>
+
+            <div>
+
+                <label class="block text-xs font-semibold text-gray-400 mb-2">
+                    Validade do Orçamento (Dias)
+                </label>
+
+                <input
+                    type="text"
+                    id="cfg-validade"
+                    inputmode="numeric"
+                    class="w-full bg-black/40 border border-gray-800 rounded-xl px-4 py-3 text-sm text-white font-bold focus:outline-none"
+                >
+
+            </div>
+
+            <div>
+
+                <label class="block text-xs font-semibold text-gray-400 mb-2">
+                    WhatsApp (Apenas DDD + Número, ex: 11939386682)
+                </label>
+
+                <input
+                    type="text"
+                    id="cfg-whatsapp"
+                    inputmode="numeric"
+                    class="w-full bg-black/40 border border-gray-800 rounded-xl px-4 py-3 text-sm text-white focus:outline-none"
+                >
+
+            </div>
+
+        </section>
+
+
+        <button
+            type="button"
+            data-action="salvarConfiguracoes"
+            class="w-full py-4 bg-accentYellow hover:bg-accentYellowHover text-darkBg font-extrabold rounded-2xl uppercase tracking-wider text-xs shadow-lg"
+        >
+            <i class="fa-solid fa-floppy-disk mr-1.5"></i>
+            Salvar Parâmetros V3.3.1
+        </button>
+
+    </main>
+
+
+    <!-- RODAPÉ -->
+    <footer class="mt-12 text-center text-xs text-gray-400/80 max-w-md mx-auto px-5 space-y-2">
+
+        <p>
+            © 2026 OrçaMetro - DN SOLUÇÕES. Todos os direitos reservados.
+        </p>
+
+        <p class="text-accentYellow font-semibold tracking-wide">
+            Licença Comercial MVP Ativa
+        </p>
+
+        <p>
+            <a
+                href="termos.html"
+                target="_blank"
+                class="text-blue-400 hover:underline mx-2"
+            >
+                Termos de Uso
+            </a>
+
+            |
+
+            <a
+                href="privacidade.html"
+                target="_blank"
+                class="text-blue-400 hover:underline mx-2"
+            >
+                Política de Privacidade
+            </a>
+        </p>
+
+    </footer>
+
+
+    <!-- JAVASCRIPT PRINCIPAL -->
+    <script>
+
+        const SUPABASE_URL =
+            'https://vjjzshpxohuspwjtkvbc.supabase.co';
+
+        const SUPABASE_KEY =
+            'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZqanpzaHB4b2h1c3B3anRrdmJjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODUzNjA4NzMsImV4cCI6MjEwMDkzNjg3M30.F6kovNGiW0uSamSiTVLzSbECwxFdnH7BZzZ7OAvQywI';
+
+
+        let supabase = null;
+
+
+        /*
+        =========================================================
+        INICIALIZAÇÃO DO SUPABASE
+        =========================================================
+        */
+
+        try {
+
+            if (
+                window.supabase &&
+                typeof window.supabase.createClient === 'function'
+            ) {
+
+                supabase = window.supabase.createClient(
+                    SUPABASE_URL,
+                    SUPABASE_KEY
+                );
+
+                console.log('Supabase inicializado com sucesso.');
+
+            } else {
+
+                throw new Error(
+                    'SDK do Supabase não carregado.'
+                );
+
+            }
+
+        } catch (erroInit) {
+
+            console.error(
+                'Falha crítica ao conectar com o Supabase:',
+                erroInit
+            );
+
+            document.addEventListener(
+                'DOMContentLoaded',
+                () => {
+
+                    const msg =
+                        document.getElementById('auth-msg');
+
+                    if (msg) {
+
+                        msg.style.color = '#f43f5e';
+
+                        msg.innerText =
+                            'Erro ao carregar o Supabase. Atualize a página.';
+
+                    }
+
+                }
+            );
+
+        }
+
+
+        /*
+        =========================================================
+        VARIÁVEIS
+        =========================================================
+        */
+
+        let currentUser = null;
+
+        let tipoFatorAtual = 'facil';
+
+        let valorCalculado = 0.0;
+
+        let areaCalculada = 0.0;
+
+        let lucroCalculado = 0.0;
+
+        let freteCalculado = 0.0;
+
+        let materialNomeSelecionado =
+            'Adesivo / Serviço';
+
+
+        const configPadrao = {
+
+            empresa: 'DN SOLUÇÕES',
+
+            taxaBase: 25,
+
+            validade: 3,
+
+            whatsapp: '11939386682',
+
+            margemLucro: 100,
+
+            valorKm: 1.50,
+
+            fatoresDificuldade: {
+                facil: 0,
+                medio: 40,
+                dificil: 80
+            }
+
+        };
+
+
+        /*
+        =========================================================
+        FUNÇÕES AUXILIARES
+        =========================================================
+        */
+
+        function parseNumber(val) {
+
+            if (
+                val === null ||
+                val === undefined ||
+                val === ''
+            ) {
+                return 0;
+            }
+
+            if (typeof val === 'number') {
+                return val;
+            }
+
+            let cleanStr =
+                val
+                    .toString()
+                    .trim();
+
+
+            if (
+                cleanStr.includes(',') &&
+                cleanStr.includes('.')
+            ) {
+
+                cleanStr =
+                    cleanStr
+                        .replace(/\./g, '')
+                        .replace(',', '.');
+
+            } else {
+
+                cleanStr =
+                    cleanStr.replace(',', '.');
+
+            }
+
+
+            const num =
+                parseFloat(cleanStr);
+
+            return Number.isFinite(num)
+                ? num
+                : 0;
+
+        }
+
+
+        function formatarMoeda(valor) {
+
+            return new Intl.NumberFormat(
+                'pt-BR',
+                {
+                    style: 'currency',
+                    currency: 'BRL'
+                }
+            ).format(
+                parseNumber(valor)
+            );
+
+        }
+
+
+        /*
+        =========================================================
+        OLHINHO DA SENHA
+        NÃO DEPENDE DO SUPABASE
+        =========================================================
+        */
+
+        function togglePasswordVisibility() {
+
+            const passwordInput =
+                document.getElementById(
+                    'auth-password'
+                );
+
+            const eyeIcon =
+                document.getElementById(
+                    'eye-icon'
+                );
+
+
+            if (
+                !passwordInput ||
+                !eyeIcon
+            ) {
+
+                console.error(
+                    'Campo de senha ou ícone não encontrado.'
+                );
+
+                return;
+
+            }
+
+
+            if (
+                passwordInput.type === 'password'
+            ) {
+
+                passwordInput.type =
+                    'text';
+
+                eyeIcon.classList.remove(
+                    'fa-eye'
+                );
+
+                eyeIcon.classList.add(
+                    'fa-eye-slash'
+                );
+
+            } else {
+
+                passwordInput.type =
+                    'password';
+
+                eyeIcon.classList.remove(
+                    'fa-eye-slash'
+                );
+
+                eyeIcon.classList.add(
+                    'fa-eye'
+                );
+
+            }
+
+        }
+
+
+        /*
+        =========================================================
+        SISTEMA CENTRAL DE BOTÕES
+        =========================================================
+
+        IMPORTANTE:
+
+        NÃO UTILIZA onclick="..."
+
+        Todos os cliques são recebidos pelo
+        addEventListener abaixo.
+
+        =========================================================
+        */
+
+        document.addEventListener(
+            'click',
+            function(event) {
+
+                const target =
+                    event.target.closest(
+                        '[data-action]'
+                    );
+
+
+                if (!target) {
+                    return;
+                }
+
+
+                const action =
+                    target.dataset.action;
+
+
+                try {
+
+                    switch (action) {
+
+                        case 'togglePasswordVisibility':
+
+                            togglePasswordVisibility();
+
+                            break;
+
+
+                        case 'fazerLogin':
+
+                            fazerLogin();
+
+                            break;
+
+
+                        case 'fazerCadastro':
+
+                            fazerCadastro();
+
+                            break;
+
+
+                        case 'fazerLogout':
+
+                            fazerLogout();
+
+                            break;
+
+
+                        case 'switchTab':
+
+                            switchTab(
+                                target.dataset.tab
+                            );
+
+                            break;
+
+
+                        case 'setFatorTipo':
+
+                            setFatorTipo(
+                                target.dataset.tipo
+                            );
+
+                            break;
+
+
+                        case 'calcularOrcamento':
+
+                            calcularOrcamento();
+
+                            break;
+
+
+                        case 'enviarWhatsApp':
+
+                            enviarWhatsApp();
+
+                            break;
+
+
+                        case 'gerarPDFOrcamento':
+
+                            gerarPDFOrcamento();
+
+                            break;
+
+
+                        case 'limparHistorico':
+
+                            limparHistorico();
+
+                            break;
+
+
+                        case 'adicionarMaterialNovo':
+
+                            adicionarMaterialNovo();
+
+                            break;
+
+
+                        case 'salvarConfiguracoes':
+
+                            salvarConfiguracoes();
+
+                            break;
+
+
+                        case 'removerMaterial':
+
+                            removerMaterial(
+                                target.dataset.id
+                            );
+
+                            break;
+
+
+                        default:
+
+                            console.warn(
+                                'Ação não reconhecida:',
+                                action
+                            );
+
+                    }
+
+                } catch (error) {
+
+                    console.error(
+                        `Erro na ação "${action}":`,
+                        error
+                    );
+
+                }
+
+            }
+        );
+
+
+        /*
+        =========================================================
+        SELECT DE MATERIAL
+        =========================================================
+        */
+
+        document.addEventListener(
+            'change',
+            function(event) {
+
+                const target =
+                    event.target.closest(
+                        '[data-action="atualizarNomeMaterialSelecionado"]'
+                    );
+
+
+                if (target) {
+
+                    atualizarNomeMaterialSelecionado();
+
+                }
+
+            }
+        );
+
+
+        /*
+        =========================================================
+        ENTER NO LOGIN
+        =========================================================
+        */
+
+        document.addEventListener(
+            'keydown',
+            function(event) {
+
+                if (
+                    event.key !== 'Enter'
+                ) {
+                    return;
+                }
+
+
+                const authModal =
+                    document.getElementById(
+                        'auth-modal'
+                    );
+
+
+                if (
+                    !authModal ||
+                    authModal.style.display === 'none'
+                ) {
+                    return;
+                }
+
+
+                const activeElement =
+                    document.activeElement;
+
+
+                if (
+                    activeElement &&
+                    (
+                        activeElement.id === 'auth-email' ||
+                        activeElement.id === 'auth-password'
+                    )
+                ) {
+
+                    event.preventDefault();
+
+                    fazerLogin();
+
+                }
+
+            }
+        );
+
+
+        /*
+        =========================================================
+        INICIALIZAÇÃO DA PÁGINA
+        =========================================================
+        */
+
+        document.addEventListener(
+            'DOMContentLoaded',
+            function() {
+
+                console.log(
+                    'DOM carregado.'
+                );
+
+
+                setupAuth();
+
+
+                window.addEventListener(
+                    'online',
+                    atualizarStatusRede
+                );
+
+
+                window.addEventListener(
+                    'offline',
+                    atualizarStatusRede
+                );
+
+
+                atualizarStatusRede();
+
+            }
+        );
+
+
+        /*
+        =========================================================
+        AUTENTICAÇÃO
+        =========================================================
+        */
+
+        function setupAuth() {
+
+            if (!supabase) {
+
+                console.error(
+                    'Supabase indisponível no setupAuth.'
+                );
+
+                return;
+
+            }
+
+
+            supabase.auth
+                .getSession()
+                .then(
+                    ({
+                        data: {
+                            session
+                        }
+                    }) => {
+
+                        tratarSessao(
+                            session
+                        );
+
+                    }
+                )
+                .catch(
+                    error => {
+
+                        console.error(
+                            'Erro ao verificar sessão:',
+                            error
+                        );
+
+                    }
+                );
+
+
+            supabase.auth
+                .onAuthStateChange(
+                    (_event, session) => {
+
+                        tratarSessao(
+                            session
+                        );
+
+                    }
+                );
+
+        }
+
+
+        /*
+        =========================================================
+        TRATAR SESSÃO
+        =========================================================
+        */
+
+        async function tratarSessao(
+            session
+        ) {
+
+            const authModal =
+                document.getElementById(
+                    'auth-modal'
+                );
+
+            const paywallModal =
+                document.getElementById(
+                    'paywall-modal'
+                );
+
+            const btnLogout =
+                document.getElementById(
+                    'btn-logout'
+                );
+
+
+            if (!session) {
+
+                currentUser = null;
+
+
+                if (authModal) {
+
+                    authModal.style.display =
+                        'flex';
+
+                }
+
+
+                if (paywallModal) {
+
+                    paywallModal
+                        .classList
+                        .add('hidden');
+
+                }
+
+
+                if (btnLogout) {
+
+                    btnLogout
+                        .classList
+                        .add('hidden');
+
+                }
+
+
+                return;
+
+            }
+
+
+            currentUser =
+                session.user;
+
+
+            if (authModal) {
+
+                authModal.style.display =
+                    'none';
+
+            }
+
+
+            if (btnLogout) {
+
+                btnLogout
+                    .classList
+                    .remove('hidden');
+
+            }
+
+
+            try {
+
+                const {
+                    data: perfil,
+                    error
+                } =
+                    await supabase
+                        .from('perfis')
+                        .select('*')
+                        .eq(
+                            'id',
+                            currentUser.id
+                        )
+                        .maybeSingle();
+
+
+                if (error) {
+
+                    console.error(
+                        'Erro ao carregar perfil:',
+                        error
+                    );
+
+                }
+
+
+                if (
+                    error ||
+                    !perfil ||
+                    (
+                        perfil.status_assinatura !==
+                            'ativo' &&
+                        perfil.status_assinatura !==
+                            'vitalicio'
+                    )
+                ) {
+
+                    if (paywallModal) {
+
+                        paywallModal
+                            .classList
+                            .remove('hidden');
+
+                    }
+
+                    return;
+
+                }
+
+
+                if (paywallModal) {
+
+                    paywallModal
+                        .classList
+                        .add('hidden');
+
+                }
+
+
+                await carregarConfiguracoesDoBanco(
+                    perfil
+                );
+
+
+                await carregarMateriaisDoBanco();
+
+
+                await renderHistorico();
+
+
+            } catch (error) {
+
+                console.error(
+                    'Erro na validação da licença:',
+                    error
+                );
+
+            }
+
+        }
+
+
+        /*
+        =========================================================
+        LOGIN
+        =========================================================
+        */
+
+        async function fazerLogin() {
+
+            const msg =
+                document.getElementById(
+                    'auth-msg'
+                );
+
+            const emailInput =
+                document.getElementById(
+                    'auth-email'
+                );
+
+            const passwordInput =
+                document.getElementById(
+                    'auth-password'
+                );
+
+            const btnEntrar =
+                document.getElementById(
+                    'btn-entrar'
+                );
+
+
+            if (
+                !emailInput ||
+                !passwordInput
+            ) {
+
+                console.error(
+                    'Campos de login não encontrados.'
+                );
+
+                return;
+
+            }
+
+
+            const email =
+                emailInput.value.trim();
+
+            /*
+            Não usamos .trim() na senha.
+
+            A senha deve ser enviada exatamente
+            como o usuário digitou.
+            */
+            const password =
+                passwordInput.value;
+
+
+            if (!email || !password) {
+
+                if (msg) {
+
+                    msg.style.color =
+                        '#f43f5e';
+
+                    msg.innerText =
+                        'Preencha e-mail e senha.';
+
+                }
+
+                return;
+
+            }
+
+
+            if (!supabase) {
+
+                if (msg) {
+
+                    msg.style.color =
+                        '#f43f5e';
+
+                    msg.innerText =
+                        'Biblioteca Supabase não carregada.';
+
+                }
+
+                return;
+
+            }
+
+
+            try {
+
+                if (btnEntrar) {
+
+                    btnEntrar.disabled =
+                        true;
+
+                    btnEntrar.innerHTML =
+                        '<i class="fa-solid fa-spinner fa-spin mr-2"></i> Entrando...';
+
+                }
+
+
+                if (msg) {
+
+                    msg.style.color =
+                        '#38bdf8';
+
+                    msg.innerText =
+                        'Entrando...';
+
+                }
+
+
+                const {
+                    data,
+                    error
+                } =
+                    await supabase.auth
+                        .signInWithPassword({
+                            email,
+                            password
+                        });
+
+
+                if (error) {
+
+                    throw error;
+
+                }
+
+
+                if (
+                    !data ||
+                    !data.user
+                ) {
+
+                    throw new Error(
+                        'O Supabase não retornou o usuário autenticado.'
+                    );
+
+                }
+
+
+                currentUser =
+                    data.user;
+
+
+                if (msg) {
+
+                    msg.style.color =
+                        '#10b981';
+
+                    msg.innerText =
+                        'Login realizado com sucesso!';
+
+                }
+
+
+                /*
+                Não precisamos depender de reload
+                para fechar o login.
+
+                A própria sessão será tratada.
+                */
+
+                if (data.session) {
+
+                    await tratarSessao(
+                        data.session
+                    );
+
+                }
+
+
+            } catch (error) {
+
+                console.error(
+                    'Erro de login:',
+                    error
+                );
+
+
+                let mensagem =
+                    error?.message ||
+                    'Erro ao autenticar usuário.';
+
+
+                if (
+                    mensagem ===
+                    'Invalid login credentials'
+                ) {
+
+                    mensagem =
+                        'E-mail ou senha incorretos.';
+
+                }
+
+
+                if (msg) {
+
+                    msg.style.color =
+                        '#f43f5e';
+
+                    msg.innerText =
+                        'Erro ao entrar: ' +
+                        mensagem;
+
+                }
+
+
+            } finally {
+
+                if (btnEntrar) {
+
+                    btnEntrar.disabled =
+                        false;
+
+                    btnEntrar.innerText =
+                        'Entrar';
+
+                }
+
+            }
+
+        }
+
+
+        /*
+        =========================================================
+        CADASTRO
+        =========================================================
+        */
+
+        async function fazerCadastro() {
+
+            const msg =
+                document.getElementById(
+                    'auth-msg'
+                );
+
+            const emailInput =
+                document.getElementById(
+                    'auth-email'
+                );
+
+            const passwordInput =
+                document.getElementById(
+                    'auth-password'
+                );
+
+            const btnCadastrar =
+                document.getElementById(
+                    'btn-cadastrar'
+                );
+
+
+            if (
+                !emailInput ||
+                !passwordInput
+            ) {
+
+                console.error(
+                    'Campos de cadastro não encontrados.'
+                );
+
+                return;
+
+            }
+
+
+            const email =
+                emailInput.value.trim();
+
+            const password =
+                passwordInput.value;
+
+
+            if (!email || !password) {
+
+                if (msg) {
+
+                    msg.style.color =
+                        '#f43f5e';
+
+                    msg.innerText =
+                        'Preencha e-mail e senha para criar a conta.';
+
+                }
+
+                return;
+
+            }
+
+
+            if (password.length < 6) {
+
+                if (msg) {
+
+                    msg.style.color =
+                        '#f43f5e';
+
+                    msg.innerText =
+                        'A senha precisa ter pelo menos 6 caracteres.';
+
+                }
+
+                return;
+
+            }
+
+
+            if (!supabase) {
+
+                if (msg) {
+
+                    msg.style.color =
+                        '#f43f5e';
+
+                    msg.innerText =
+                        'Erro: Supabase não carregado.';
+
+                }
+
+                return;
+
+            }
+
+
+            try {
+
+                if (btnCadastrar) {
+
+                    btnCadastrar.disabled =
+                        true;
+
+                    btnCadastrar.innerHTML =
+                        '<i class="fa-solid fa-spinner fa-spin mr-2"></i> Criando...';
+
+                }
+
+
+                if (msg) {
+
+                    msg.style.color =
+                        '#38bdf8';
+
+                    msg.innerText =
+                        'Criando conta...';
+
+                }
+
+
+                const {
+                    data,
+                    error
+                } =
+                    await supabase.auth
+                        .signUp({
+                            email,
+                            password
+                        });
+
+
+                if (error) {
+
+                    throw error;
+
+                }
+
+
+                if (msg) {
+
+                    msg.style.color =
+                        '#10b981';
+
+
+                    if (
+                        data &&
+                        data.session
+                    ) {
+
+                        msg.innerText =
+                            'Conta criada e autenticada com sucesso!';
+
+                    } else {
+
+                        msg.innerText =
+                            'Conta criada! Verifique seu e-mail caso a confirmação esteja habilitada.';
+
+                    }
+
+                }
+
+
+                if (
+                    data &&
+                    data.session
+                ) {
+
+                    await tratarSessao(
+                        data.session
+                    );
+
+                }
+
+
+            } catch (error) {
+
+                console.error(
+                    'Erro de cadastro:',
+                    error
+                );
+
+
+                if (msg) {
+
+                    msg.style.color =
+                        '#f43f5e';
+
+                    msg.innerText =
+                        'Erro ao criar conta: ' +
+                        (
+                            error?.message ||
+                            'Falha desconhecida.'
+                        );
+
+                }
+
+
+            } finally {
+
+                if (btnCadastrar) {
+
+                    btnCadastrar.disabled =
+                        false;
+
+                    btnCadastrar.innerText =
+                        'Criar Conta';
+
+                }
+
+            }
+
+        }
+
+
+        /*
+        =========================================================
+        LOGOUT
+        =========================================================
+        */
+
+        async function fazerLogout() {
+
+            try {
+
+                if (supabase) {
+
+                    await supabase.auth
+                        .signOut();
+
+                }
+
+            } catch (error) {
+
+                console.error(
+                    'Erro ao sair:',
+                    error
+                );
+
+            }
+
+
+            currentUser =
+                null;
+
+
+            const authModal =
+                document.getElementById(
+                    'auth-modal'
+                );
+
+
+            const paywallModal =
+                document.getElementById(
+                    'paywall-modal'
+                );
+
+
+            const btnLogout =
+                document.getElementById(
+                    'btn-logout'
+                );
+
+
+            if (authModal) {
+
+                authModal.style.display =
+                    'flex';
+
+            }
+
+
+            if (paywallModal) {
+
+                paywallModal
+                    .classList
+                    .add('hidden');
+
+            }
+
+
+            if (btnLogout) {
+
+                btnLogout
+                    .classList
+                    .add('hidden');
+
+            }
+
+        }
+
+
+        /*
+        =========================================================
+        STATUS DA REDE
+        =========================================================
+        */
+
+        function atualizarStatusRede() {
+
+            const badge =
+                document.getElementById(
+                    'badge-status'
+                );
+
+
+            if (!badge) {
+                return;
+            }
+
+
+            if (navigator.onLine) {
+
+                badge.className =
+                    'bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-[10px] font-bold px-3 py-1 rounded-full uppercase tracking-wider';
+
+                badge.innerText =
+                    'Online';
+
+            } else {
+
+                badge.className =
+                    'bg-amber-500/10 border border-amber-500/20 text-amber-400 text-[10px] font-bold px-3 py-1 rounded-full uppercase tracking-wider';
+
+                badge.innerText =
+                    'Offline';
+
+            }
+
+        }
+
+
+        /*
+        =========================================================
+        ABAS
+        =========================================================
+        */
+
+        function switchTab(tab) {
+
+            const viewOrcamento =
+                document.getElementById(
+                    'view-orcamento'
+                );
+
+            const viewHistorico =
+                document.getElementById(
+                    'view-historico'
+                );
+
+            const viewConfigurar =
+                document.getElementById(
+                    'view-configurar'
+                );
+
+
+            const tabOrcamento =
+                document.getElementById(
+                    'tab-orcamento'
+                );
+
+            const tabHistorico =
+                document.getElementById(
+                    'tab-historico'
+                );
+
+            const tabConfigurar =
+                document.getElementById(
+                    'tab-configurar'
+                );
+
+
+            if (
+                !viewOrcamento ||
+                !viewHistorico ||
+                !viewConfigurar ||
+                !tabOrcamento ||
+                !tabHistorico ||
+                !tabConfigurar
+            ) {
+
+                return;
+
+            }
+
+
+            viewOrcamento
+                .classList
+                .add('hidden');
+
+            viewHistorico
+                .classList
+                .add('hidden');
+
+            viewConfigurar
+                .classList
+                .add('hidden');
+
+
+            const inactiveClass =
+                'flex-1 py-3 text-xs font-bold rounded-xl transition-all duration-300 text-gray-400 hover:text-white';
+
+            const activeClass =
+                'flex-1 py-3 text-xs font-bold rounded-xl transition-all duration-300 bg-accentYellow text-darkBg shadow-md';
+
+
+            tabOrcamento.className =
+                inactiveClass;
+
+            tabHistorico.className =
+                inactiveClass;
+
+            tabConfigurar.className =
+                inactiveClass;
+
+
+            if (
+                tab === 'orcamento'
+            ) {
+
+                viewOrcamento
+                    .classList
+                    .remove('hidden');
+
+                tabOrcamento.className =
+                    activeClass;
+
+            }
+
+
+            if (
+                tab === 'historico'
+            ) {
+
+                viewHistorico
+                    .classList
+                    .remove('hidden');
+
+                tabHistorico.className =
+                    activeClass;
+
+                renderHistorico();
+
+            }
+
+
+            if (
+                tab === 'configurar'
+            ) {
+
+                viewConfigurar
+                    .classList
+                    .remove('hidden');
+
+                tabConfigurar.className =
+                    activeClass;
+
+            }
+
+        }
+
+
+        /*
+        =========================================================
+        CONFIGURAÇÃO DO USUÁRIO
+        =========================================================
+        */
+
+        async function carregarConfiguracoesDoBanco(
+            perfil
+        ) {
+
+            const config = {
+
+                empresa:
+                    perfil.empresa ||
+                    configPadrao.empresa,
+
+                margemLucro:
+                    perfil.margem_lucro !== null &&
+                    perfil.margem_lucro !== undefined
+                        ? perfil.margem_lucro
+                        : configPadrao.margemLucro,
+
+                valorKm:
+                    perfil.valor_km !== null &&
+                    perfil.valor_km !== undefined
+                        ? perfil.valor_km
+                        : configPadrao.valorKm,
+
+                taxaBase:
+                    perfil.taxa_base !== null &&
+                    perfil.taxa_base !== undefined
+                        ? perfil.taxa_base
+                        : configPadrao.taxaBase,
+
+                validade:
+                    perfil.validade !== null &&
+                    perfil.validade !== undefined
+                        ? perfil.validade
+                        : configPadrao.validade,
+
+                whatsapp:
+                    perfil.whatsapp ||
+                    configPadrao.whatsapp,
+
+                fatoresDificuldade:
+                    perfil.fatores_dificuldade ||
+                    configPadrao.fatoresDificuldade
+
+            };
+
+
+            document.getElementById(
+                'cfg-empresa'
+            ).value =
+                config.empresa;
+
+
+            document.getElementById(
+                'cfg-margem'
+            ).value =
+                config.margemLucro;
+
+
+            document.getElementById(
+                'cfg-valorkm'
+            ).value =
+                config.valorKm;
+
+
+            document.getElementById(
+                'cfg-taxabase'
+            ).value =
+                config.taxaBase;
+
+
+            document.getElementById(
+                'cfg-validade'
+            ).value =
+                config.validade;
+
+
+            document.getElementById(
+                'cfg-whatsapp'
+            ).value =
+                config.whatsapp;
+
+
+            const fat =
+                config.fatoresDificuldade;
+
+
+            document.getElementById(
+                'cfg-fator-facil'
+            ).value =
+                fat.facil ?? 0;
+
+
+            document.getElementById(
+                'cfg-fator-medio'
+            ).value =
+                fat.medio ?? 40;
+
+
+            document.getElementById(
+                'cfg-fator-dificil'
+            ).value =
+                fat.dificil ?? 80;
+
+
+            document.getElementById(
+                'lbl-fator-facil'
+            ).innerText =
+                `+${fat.facil ?? 0}%`;
+
+
+            document.getElementById(
+                'lbl-fator-medio'
+            ).innerText =
+                `+${fat.medio ?? 40}%`;
+
+
+            document.getElementById(
+                'lbl-fator-dificil'
+            ).innerText =
+                `+${fat.dificil ?? 80}%`;
+
+        }
+
+
+        /*
+        =========================================================
+        MATERIAIS
+        =========================================================
+        */
+
+        async function carregarMateriaisDoBanco() {
+
+            if (
+                !currentUser ||
+                !supabase
+            ) {
+                return;
+            }
+
+
+            try {
+
+                const {
+                    data,
+                    error
+                } =
+                    await supabase
+                        .from('materiais')
+                        .select('*')
+                        .eq(
+                            'user_id',
+                            currentUser.id
+                        )
+                        .order(
+                            'nome',
+                            {
+                                ascending: true
+                            }
+                        );
+
+
+                if (error) {
+
+                    throw error;
+
+                }
+
+
+                renderSelectMateriais(
+                    data || []
+                );
+
+
+                renderConfigMateriais(
+                    data || []
+                );
+
+
+            } catch (error) {
+
+                console.error(
+                    'Erro ao carregar materiais do banco:',
+                    error
+                );
+
+            }
+
+        }
+
+
+        function renderSelectMateriais(
+            materiais
+        ) {
+
+            const select =
+                document.getElementById(
+                    'servico-material'
+                );
+
+
+            if (!select) {
+                return;
+            }
+
+
+            select.innerHTML =
+                '';
+
+
+            if (
+                !materiais ||
+                materiais.length === 0
+            ) {
+
+                select.innerHTML =
+                    '<option value="0">Nenhum material cadastrado</option>';
+
+
+                materialNomeSelecionado =
+                    'Nenhum material';
+
+
+                return;
+
+            }
+
+
+            materiais.forEach(
+                material => {
+
+                    const option =
+                        document.createElement(
+                            'option'
+                        );
+
+
+                    option.value =
+                        parseNumber(
+                            material.custo
+                        );
+
+
+                    option.dataset.nome =
+                        material.nome ||
+                        'Material';
+
+
+                    option.innerText =
+                        `${material.nome} (Custo: ${formatarMoeda(material.custo)}/m²)`;
+
+
+                    select.appendChild(
+                        option
+                    );
+
+                }
+            );
+
+
+            atualizarNomeMaterialSelecionado();
+
+        }
+
+
+        function atualizarNomeMaterialSelecionado() {
+
+            const select =
+                document.getElementById(
+                    'servico-material'
+                );
+
+
+            if (
+                select &&
+                select.selectedIndex >= 0 &&
+                select.options[
+                    select.selectedIndex
+                ]
+            ) {
+
+                materialNomeSelecionado =
+                    select.options[
+                        select.selectedIndex
+                    ].dataset.nome ||
+                    'Adesivo / Serviço';
+
+            }
+
+        }
+
+
+        function renderConfigMateriais(
+            materiais
+        ) {
+
+            const container =
+                document.getElementById(
+                    'lista-materials-config'
+                );
+
+
+            if (!container) {
+                return;
+            }
+
+
+            container.innerHTML =
+                '';
+
+
+            if (
+                !materiais ||
+                materiais.length === 0
+            ) {
+
+                container.innerHTML =
+                    '<p class="text-xs text-gray-500 italic">Nenhum material cadastrado.</p>';
+
+                return;
+
+            }
+
+
+            materiais.forEach(
+                material => {
+
+                    const div =
+                        document.createElement(
+                            'div'
+                        );
+
+
+                    div.className =
+                        'flex items-center gap-2 bg-black/30 p-2 rounded-xl border border-gray-800';
+
+
+                    const nomeSpan =
+                        document.createElement(
+                            'span'
+                        );
+
+
+                    nomeSpan.className =
+                        'flex-1 text-xs text-white font-semibold';
+
+
+                    nomeSpan.textContent =
+                        material.nome ||
+                        'Material';
+
+
+                    const custoSpan =
+                        document.createElement(
+                            'span'
+                        );
+
+
+                    custoSpan.className =
+                        'text-xs text-amber-500 font-bold';
+
+
+                    custoSpan.textContent =
+                        `${formatarMoeda(material.custo)}/m²`;
+
+
+                    const removerBtn =
+                        document.createElement(
+                            'button'
+                        );
+
+
+                    removerBtn.type =
+                        'button';
+
+
+                    removerBtn.dataset.action =
+                        'removerMaterial';
+
+
+                    removerBtn.dataset.id =
+                        material.id;
+
+
+                    removerBtn.className =
+                        'text-red-400 hover:text-red-300 text-xs px-2 py-1';
+
+
+                    removerBtn.innerHTML =
+                        '<i class="fa-solid fa-trash"></i>';
+
+
+                    div.appendChild(
+                        nomeSpan
+                    );
+
+
+                    div.appendChild(
+                        custoSpan
+                    );
+
+
+                    div.appendChild(
+                        removerBtn
+                    );
+
+
+                    container.appendChild(
+                        div
+                    );
+
+                }
+            );
+
+        }
+
+
+        /*
+        =========================================================
+        FATOR DE INSTALAÇÃO
+        =========================================================
+        */
+
+        function setFatorTipo(tipo) {
+
+            if (
+                ![
+                    'facil',
+                    'medio',
+                    'dificil'
+                ].includes(tipo)
+            ) {
+
+                return;
+
+            }
+
+
+            tipoFatorAtual =
+                tipo;
+
+
+            [
+                'facil',
+                'medio',
+                'dificil'
+            ].forEach(
+                item => {
+
+                    const elemento =
+                        document.getElementById(
+                            `btn-fator-${item}`
+                        );
+
+
+                    if (!elemento) {
+                        return;
+                    }
+
+
+                    if (
+                        item === tipo
+                    ) {
+
+                        elemento.className =
+                            'fator-btn py-3.5 px-2 rounded-2xl border border-accentYellow bg-accentYellow text-darkBg font-bold transition-all flex flex-col items-center';
+
+                    } else {
+
+                        elemento.className =
+                            'fator-btn py-3.5 px-2 rounded-2xl border border-gray-800 bg-black/30 text-gray-400 font-bold transition-all flex flex-col items-center hover:border-gray-700';
+
+                    }
+
+                }
+            );
+
+        }
+
+
+        /*
+        =========================================================
+        CALCULAR ORÇAMENTO
+        =========================================================
+        */
+
+        async function calcularOrcamento() {
+
+            const largura =
+                parseNumber(
+                    document.getElementById(
+                        'medida-largura'
+                    ).value
+                );
+
+
+            const altura =
+                parseNumber(
+                    document.getElementById(
+                        'medida-altura'
+                    ).value
+                );
+
+
+            const distancia =
+                parseNumber(
+                    document.getElementById(
+                        'medida-distancia'
+                    ).value
+                );
+
+
+            atualizarNomeMaterialSelecionado();
+
+
+            const selectMat =
+                document.getElementById(
+                    'servico-material'
+                );
+
+
+            const custoMaterialM2 =
+                parseNumber(
+                    selectMat
+                        ? selectMat.value
+                        : 0
+                );
+
+
+            if (
+                largura <= 0 ||
+                altura <= 0
+            ) {
+
+                alert(
+                    'Preencha a Largura e a Altura com valores válidos maiores que zero.'
+                );
+
+                return;
+
+            }
+
+
+            const margemPct =
+                parseNumber(
+                    document.getElementById(
+                        'cfg-margem'
+                    ).value
+                ) ||
+                configPadrao.margemLucro;
+
+
+            const valorKm =
+                parseNumber(
+                    document.getElementById(
+                        'cfg-valorkm'
+                    ).value
+                ) ||
+                configPadrao.valorKm;
+
+
+            const taxaBaseInstalacao =
+                parseNumber(
+                    document.getElementById(
+                        'cfg-taxabase'
+                    ).value
+                ) ||
+                configPadrao.taxaBase;
+
+
+            const fatoresDificuldade = {
+
+                facil:
+                    parseNumber(
+                        document.getElementById(
+                            'cfg-fator-facil'
+                        ).value
+                    ),
+
+                medio:
+                    parseNumber(
+                        document.getElementById(
+                            'cfg-fator-medio'
+                        ).value
+                    ),
+
+                dificil:
+                    parseNumber(
+                        document.getElementById(
+                            'cfg-fator-dificil'
+                        ).value
+                    )
+
+            };
+
+
+            areaCalculada =
+                largura * altura;
+
+
+            const custoBaseMaterial =
+                areaCalculada *
+                custoMaterialM2;
+
+
+            freteCalculado =
+                distancia *
+                valorKm;
+
+
+            const fatorPct =
+                parseNumber(
+                    fatoresDificuldade[
+                        tipoFatorAtual
+                    ] || 0
+                );
+
+
+            const adicionalDificuldade =
+                taxaBaseInstalacao *
+                (
+                    fatorPct /
+                    100
+                );
+
+
+            const custoInstalacaoFinal =
+                taxaBaseInstalacao +
+                adicionalDificuldade;
+
+
+            const custoTotalProducao =
+                custoBaseMaterial +
+                freteCalculado +
+                custoInstalacaoFinal;
+
+
+            lucroCalculado =
+                custoTotalProducao *
+                (
+                    margemPct /
+                    100
+                );
+
+
+            valorCalculado =
+                custoTotalProducao +
+                lucroCalculado;
+
+
+            document.getElementById(
+                'resultado-valor'
+            ).innerText =
+                formatarMoeda(
+                    valorCalculado
+                );
+
+
+            document.getElementById(
+                'resultado-area'
+            ).innerText =
+                `${areaCalculada
+                    .toFixed(2)
+                    .replace('.', ',')}m²`;
+
+
+            document.getElementById(
+                'resultado-frete'
+            ).innerText =
+                formatarMoeda(
+                    freteCalculado
+                );
+
+
+            document.getElementById(
+                'resultado-lucro'
+            ).innerText =
+                `${formatarMoeda(lucroCalculado)} (${margemPct}%)`;
+
+
+            const clienteNome =
+                document.getElementById(
+                    'cliente-nome'
+                ).value.trim() ||
+                'Cliente Sem Nome';
+
+
+            if (
+                currentUser &&
+                supabase
+            ) {
+
+                try {
+
+                    const {
+                        error
+                    } =
+                        await supabase
+                            .from(
+                                'orcamentos'
+                            )
+                            .insert([
+                                {
+                                    user_id:
+                                        currentUser.id,
+
+                                    cliente:
+                                        clienteNome,
+
+                                    valor:
+                                        valorCalculado,
+
+                                    area:
+                                        areaCalculada,
+
+                                    lucro_previsto:
+                                        lucroCalculado
+                                }
+                            ]);
+
+
+                    if (error) {
+
+                        console.error(
+                            'Erro ao salvar orçamento:',
+                            error
+                        );
+
+                    }
+
+                } catch (error) {
+
+                    console.error(
+                        'Erro ao salvar cálculo no Supabase:',
+                        error
+                    );
+
+                }
+
+            }
+
+        }
+
+
+        /*
+        =========================================================
+        HISTÓRICO
+        =========================================================
+        */
+
+        async function renderHistorico() {
+
+            const container =
+                document.getElementById(
+                    'lista-historico'
+                );
+
+
+            if (!container) {
+                return;
+            }
+
+
+            container.innerHTML =
+                '';
+
+
+            if (
+                currentUser &&
+                supabase
+            ) {
+
+                try {
+
+                    const {
+                        data,
+                        error
+                    } =
+                        await supabase
+                            .from(
+                                'orcamentos'
+                            )
+                            .select('*')
+                            .eq(
+                                'user_id',
+                                currentUser.id
+                            )
+                            .order(
+                                'created_at',
+                                {
+                                    ascending:
+                                        false
+                                }
+                            )
+                            .limit(10);
+
+
+                    if (error) {
+
+                        throw error;
+
+                    }
+
+
+                    if (
+                        data &&
+                        data.length > 0
+                    ) {
+
+                        data.forEach(
+                            historico => {
+
+                                const div =
+                                    document.createElement(
+                                        'div'
+                                    );
+
+
+                                div.className =
+                                    'glass-card p-4 rounded-2xl flex justify-between items-center';
+
+
+                                const esquerda =
+                                    document.createElement(
+                                        'div'
+                                    );
+
+
+                                const nome =
+                                    document.createElement(
+                                        'h4'
+                                    );
+
+
+                                nome.className =
+                                    'text-xs font-bold text-white';
+
+
+                                nome.textContent =
+                                    historico.cliente ||
+                                    'Cliente';
+
+
+                                const detalhes =
+                                    document.createElement(
+                                        'p'
+                                    );
+
+
+                                detalhes.className =
+                                    'text-[10px] text-gray-400';
+
+
+                                const dataTexto =
+                                    historico.created_at
+                                        ? new Date(
+                                            historico.created_at
+                                        ).toLocaleDateString(
+                                            'pt-BR'
+                                        )
+                                        : '';
+
+
+                                detalhes.textContent =
+                                    `${dataTexto} • ${parseNumber(historico.area).toFixed(2)}m²`;
+
+
+                                esquerda.appendChild(
+                                    nome
+                                );
+
+
+                                esquerda.appendChild(
+                                    detalhes
+                                );
+
+
+                                const valor =
+                                    document.createElement(
+                                        'span'
+                                    );
+
+
+                                valor.className =
+                                    'text-sm font-extrabold text-accentYellow';
+
+
+                                valor.textContent =
+                                    formatarMoeda(
+                                        historico.valor
+                                    );
+
+
+                                div.appendChild(
+                                    esquerda
+                                );
+
+
+                                div.appendChild(
+                                    valor
+                                );
+
+
+                                container.appendChild(
+                                    div
+                                );
+
+                            }
+                        );
+
+
+                        return;
+
+                    }
+
+                } catch (error) {
+
+                    console.error(
+                        'Erro ao carregar histórico:',
+                        error
+                    );
+
+                }
+
+            }
+
+
+            container.innerHTML =
+                '<p class="text-xs text-gray-500 text-center py-4">Nenhum orçamento salvo no histórico.</p>';
+
+        }
+
+
+        async function limparHistorico() {
+
+            const desejaExcluir =
+                confirm(
+                    'Deseja apagar todo o seu histórico no banco?'
+                );
+
+
+            if (!desejaExcluir) {
+                return;
+            }
+
+
+            if (
+                currentUser &&
+                supabase
+            ) {
+
+                try {
+
+                    const {
+                        error
+                    } =
+                        await supabase
+                            .from(
+                                'orcamentos'
+                            )
+                            .delete()
+                            .eq(
+                                'user_id',
+                                currentUser.id
+                            );
+
+
+                    if (error) {
+
+                        throw error;
+
+                    }
+
+
+                } catch (error) {
+
+                    console.error(
+                        'Erro ao limpar histórico:',
+                        error
+                    );
+
+                    alert(
+                        'Erro ao apagar histórico.'
+                    );
+
+                    return;
+
+                }
+
+            }
+
+
+            renderHistorico();
+
+        }
+
+
+        /*
+        =========================================================
+        ADICIONAR MATERIAL
+        =========================================================
+        */
+
+        async function adicionarMaterialNovo() {
+
+            const nomeInput =
+                document.getElementById(
+                    'add-material-nome'
+                );
+
+
+            const precoInput =
+                document.getElementById(
+                    'add-material-preco'
+                );
+
+
+            if (
+                !nomeInput ||
+                !precoInput
+            ) {
+                return;
+            }
+
+
+            const nome =
+                nomeInput.value.trim();
+
+
+            const custo =
+                parseNumber(
+                    precoInput.value
+                );
+
+
+            if (
+                !nome ||
+                custo <= 0
+            ) {
+
+                alert(
+                    'Preencha o nome e um custo válido do material.'
+                );
+
+                return;
+
+            }
+
+
+            if (
+                !currentUser ||
+                !supabase
+            ) {
+
+                alert(
+                    'Você precisa estar autenticado.'
+                );
+
+                return;
+
+            }
+
+
+            try {
+
+                const {
+                    error
+                } =
+                    await supabase
+                        .from(
+                            'materiais'
+                        )
+                        .insert([
+                            {
+                                user_id:
+                                    currentUser.id,
+
+                                nome:
+                                    nome,
+
+                                custo:
+                                    custo
+                            }
+                        ]);
+
+
+                if (error) {
+
+                    throw error;
+
+                }
+
+
+                nomeInput.value =
+                    '';
+
+
+                precoInput.value =
+                    '';
+
+
+                await carregarMateriaisDoBanco();
+
+
+            } catch (error) {
+
+                console.error(
+                    'Erro ao salvar material no banco:',
+                    error
+                );
+
+
+                alert(
+                    'Erro ao salvar material no Supabase.'
+                );
+
+            }
+
+        }
+
+
+        /*
+        =========================================================
+        REMOVER MATERIAL
+        =========================================================
+        */
+
+        async function removerMaterial(
+            materialId
+        ) {
+
+            if (!materialId) {
+                return;
+            }
+
+
+            const desejaExcluir =
+                confirm(
+                    'Deseja realmente excluir este material?'
+                );
+
+
+            if (!desejaExcluir) {
+                return;
+            }
+
+
+            if (
+                !currentUser ||
+                !supabase
+            ) {
+                return;
+            }
+
+
+            try {
+
+                const {
+                    error
+                } =
+                    await supabase
+                        .from(
+                            'materiais'
+                        )
+                        .delete()
+                        .eq(
+                            'id',
+                            materialId
+                        )
+                        .eq(
+                            'user_id',
+                            currentUser.id
+                        );
+
+
+                if (error) {
+
+                    throw error;
+
+                }
+
+
+                await carregarMateriaisDoBanco();
+
+
+            } catch (error) {
+
+                console.error(
+                    'Erro ao remover material:',
+                    error
+                );
+
+
+                alert(
+                    'Erro ao excluir material.'
+                );
+
+            }
+
+        }
+
+
+        /*
+        =========================================================
+        SALVAR CONFIGURAÇÕES
+        =========================================================
+        */
+
+        async function salvarConfiguracoes() {
+
+            if (
+                !currentUser ||
+                !supabase
+            ) {
+
+                alert(
+                    'Você precisa estar autenticado.'
+                );
+
+                return;
+
+            }
+
+
+            const empresa =
+                document.getElementById(
+                    'cfg-empresa'
+                ).value.trim() ||
+                'Sua Empresa';
+
+
+            const margemLucro =
+                parseNumber(
+                    document.getElementById(
+                        'cfg-margem'
+                    ).value
+                );
+
+
+            const valorKm =
+                parseNumber(
+                    document.getElementById(
+                        'cfg-valorkm'
+                    ).value
+                );
+
+
+            const taxaBase =
+                parseNumber(
+                    document.getElementById(
+                        'cfg-taxabase'
+                    ).value
+                );
+
+
+            const validade =
+                parseNumber(
+                    document.getElementById(
+                        'cfg-validade'
+                    ).value
+                );
+
+
+            const whatsapp =
+                document.getElementById(
+                    'cfg-whatsapp'
+                ).value.trim();
+
+
+            const fatoresDificuldade = {
+
+                facil:
+                    parseNumber(
+                        document.getElementById(
+                            'cfg-fator-facil'
+                        ).value
+                    ),
+
+                medio:
+                    parseNumber(
+                        document.getElementById(
+                            'cfg-fator-medio'
+                        ).value
+                    ),
+
+                dificil:
+                    parseNumber(
+                        document.getElementById(
+                            'cfg-fator-dificil'
+                        ).value
+                    )
+
+            };
+
+
+            try {
+
+                const {
+                    error
+                } =
+                    await supabase
+                        .from(
+                            'perfis'
+                        )
+                        .update({
+                            empresa:
+                                empresa,
+
+                            margem_lucro:
+                                margemLucro,
+
+                            valor_km:
+                                valorKm,
+
+                            taxa_base:
+                                taxaBase,
+
+                            validade:
+                                validade,
+
+                            whatsapp:
+                                whatsapp,
+
+                            fatores_dificuldade:
+                                fatoresDificuldade
+                        })
+                        .eq(
+                            'id',
+                            currentUser.id
+                        );
+
+
+                if (error) {
+
+                    throw error;
+
+                }
+
+
+                document.getElementById(
+                    'lbl-fator-facil'
+                ).innerText =
+                    `+${fatoresDificuldade.facil}%`;
+
+
+                document.getElementById(
+                    'lbl-fator-medio'
+                ).innerText =
+                    `+${fatoresDificuldade.medio}%`;
+
+
+                document.getElementById(
+                    'lbl-fator-dificil'
+                ).innerText =
+                    `+${fatoresDificuldade.dificil}%`;
+
+
+                alert(
+                    'Configurações salvas no Supabase com sucesso!'
+                );
+
+
+            } catch (error) {
+
+                console.error(
+                    'Erro ao salvar configurações:',
+                    error
+                );
+
+
+                alert(
+                    'Erro ao salvar configurações no servidor.'
+                );
+
+            }
+
+        }
+
+
+        /*
+        =========================================================
+        WHATSAPP
+        =========================================================
+        */
+
+        function enviarWhatsApp() {
+
+            if (
+                valorCalculado <= 0
+            ) {
+
+                alert(
+                    'Realize um cálculo antes de enviar.'
+                );
+
+                return;
+
+            }
+
+
+            const numInput =
+                document.getElementById(
+                    'cfg-whatsapp'
+                ).value.trim();
+
+
+            const limpo =
+                numInput.replace(
+                    /\D/g,
+                    ''
+                );
+
+
+            if (!limpo) {
+
+                alert(
+                    'Configure o número do WhatsApp.'
+                );
+
+                return;
+
+            }
+
+
+            const numWhats =
+                limpo.startsWith('55')
+                    ? limpo
+                    : `55${limpo}`;
+
+
+            const empresa =
+                document.getElementById(
+                    'cfg-empresa'
+                ).value.trim() ||
+                'DN SOLUÇÕES';
+
+
+            const validadeDias =
+                document.getElementById(
+                    'cfg-validade'
+                ).value.trim() ||
+                '3';
+
+
+            const cliente =
+                document.getElementById(
+                    'cliente-nome'
+                ).value.trim() ||
+                'Cliente';
+
+
+            const texto =
+                `Olá *${cliente}*, segue o orçamento solicitado para *${empresa}*:\n\n` +
+                `📌 *Serviço/Material:* ${materialNomeSelecionado}\n` +
+                `📐 *Área Total:* ${areaCalculada.toFixed(2).replace('.', ',')} m²\n` +
+                `💰 *Valor Total:* ${formatarMoeda(valorCalculado)}\n` +
+                `⏱️ *Validade:* ${validadeDias} dias\n\n` +
+                `Fico à disposição para dúvidas e aprovação!`;
+
+
+            const url =
+                `https://wa.me/${numWhats}?text=${encodeURIComponent(texto)}`;
+
+
+            window.open(
+                url,
+                '_blank',
+                'noopener,noreferrer'
+            );
+
+        }
+
+
+        /*
+        =========================================================
+        PDF
+        =========================================================
+        */
+
+        function gerarPDFOrcamento() {
+
+            if (
+                valorCalculado <= 0
+            ) {
+
+                alert(
+                    'Realize um cálculo antes de gerar o PDF.'
+                );
+
+                return;
+
+            }
+
+
+            const empresa =
+                document.getElementById(
+                    'cfg-empresa'
+                ).value.trim() ||
+                'DN SOLUÇÕES';
+
+
+            const validadeDias =
+                document.getElementById(
+                    'cfg-validade'
+                ).value.trim() ||
+                '3';
+
+
+            const cliente =
+                document.getElementById(
+                    'cliente-nome'
+                ).value.trim() ||
+                'Cliente Especial';
+
+
+            const total =
+                formatarMoeda(
+                    valorCalculado
+                );
+
+
+            const area =
+                `${areaCalculada.toFixed(2).replace('.', ',')} m²`;
+
+
+            const validade =
+                `${validadeDias} dias`;
+
+
+            const dataHoje =
+                new Date()
+                    .toLocaleDateString(
+                        'pt-BR'
+                    );
+
+
+            const container =
+                document.getElementById(
+                    'area-impressao-pdf'
+                );
+
+
+            if (!container) {
+
+                alert(
+                    "Erro técnico: elemento 'area-impressao-pdf' não encontrado."
+                );
+
+                return;
+
+            }
+
+
+            container.innerHTML =
+                `
+                <div style="
+                    font-family: Arial, sans-serif;
+                    color: #000;
+                    padding: 30px;
+                    max-width: 750px;
+                    margin: auto;
+                    background-color: #fff;
+                ">
+
+                    <div style="
+                        border-bottom: 3px solid #111;
+                        padding-bottom: 12px;
+                        margin-bottom: 20px;
+                        display: flex;
+                        justify-content: space-between;
+                        align-items: flex-end;
+                    ">
+
+                        <div>
+
+                            <h1 style="
+                                margin: 0;
+                                font-size: 22px;
+                                font-weight: 800;
+                                text-transform: uppercase;
+                                letter-spacing: 0.5px;
+                            ">
+                                ${empresa}
+                            </h1>
+
+                            <span style="
+                                font-size: 12px;
+                                color: #555;
+                                font-weight: 600;
+                            ">
+                                PROPOSTA COMERCIAL DE SERVIÇOS
+                            </span>
+
+                        </div>
+
+                        <div style="
+                            text-align: right;
+                            font-size: 12px;
+                            color: #333;
+                        ">
+
+                            <p style="margin: 0;">
+                                Data:
+                                <strong>${dataHoje}</strong>
+                            </p>
+
+                            <p style="margin: 3px 0 0 0;">
+                                Validade:
+                                <strong>${validade}</strong>
+                            </p>
+
+                        </div>
+
+                    </div>
+
+
+                    <div style="
+                        background: #f8fafc;
+                        border: 1px solid #e2e8f0;
+                        padding: 12px 16px;
+                        margin-bottom: 20px;
+                        font-size: 13px;
+                        border-radius: 6px;
+                    ">
+
+                        <p style="
+                            margin: 0;
+                            color: #1e293b;
+                        ">
+
+                            <strong>
+                                Cliente Atendido:
+                            </strong>
+
+                            ${cliente}
+
+                        </p>
+
+                    </div>
+
+
+                    <table style="
+                        width: 100%;
+                        border-collapse: collapse;
+                        margin-bottom: 25px;
+                        font-size: 13px;
+                    ">
+
+                        <thead>
+
+                            <tr style="
+                                background: #0f172a;
+                                color: #ffffff;
+                            ">
+
+                                <th style="
+                                    padding: 10px 12px;
+                                    text-align: left;
+                                    font-weight: 700;
+                                ">
+                                    Descrição do Serviço
+                                </th>
+
+                                <th style="
+                                    padding: 10px 12px;
+                                    text-align: right;
+                                    font-weight: 700;
+                                ">
+                                    Dimensão / Área
+                                </th>
+
+                            </tr>
+
+                        </thead>
+
+                        <tbody>
+
+                            <tr>
+
+                                <td style="
+                                    padding: 12px;
+                                    border-bottom: 1px solid #e2e8f0;
+                                ">
+
+                                    <strong style="
+                                        color: #0f172a;
+                                        font-size: 14px;
+                                    ">
+                                        ${materialNomeSelecionado}
+                                    </strong>
+
+                                    <br>
+
+                                    <span style="
+                                        font-size: 11px;
+                                        color: #64748b;
+                                    ">
+                                        Incluso fornecimento de material,
+                                        confecção e instalação especializada.
+                                    </span>
+
+                                </td>
+
+                                <td style="
+                                    padding: 12px;
+                                    border-bottom: 1px solid #e2e8f0;
+                                    text-align: right;
+                                    font-weight: 700;
+                                    font-size: 14px;
+                                    color: #0f172a;
+                                ">
+                                    ${area}
+                                </td>
+
+                            </tr>
+
+                        </tbody>
+
+                    </table>
+
+
+                    <div style="
+                        border: 2px solid #0f172a;
+                        padding: 16px;
+                        text-align: right;
+                        border-radius: 8px;
+                        margin-top: 20px;
+                        background-color: #f8fafc;
+                    ">
+
+                        <span style="
+                            font-size: 11px;
+                            text-transform: uppercase;
+                            font-weight: 700;
+                            color: #475569;
+                            letter-spacing: 0.5px;
+                        ">
+                            Valor Total do Investimento
+                        </span>
+
+                        <div style="
+                            font-size: 28px;
+                            font-weight: 900;
+                            margin-top: 4px;
+                            color: #0f172a;
+                        ">
+                            ${total}
+                        </div>
+
+                    </div>
+
+
+                    <div style="
+                        margin-top: 30px;
+                        font-size: 11px;
+                        color: #64748b;
+                        border-top: 1px solid #cbd5e1;
+                        padding-top: 12px;
+                        line-height: 1.5;
+                    ">
+
+                        <p style="margin: 0;">
+                            •
+                            <strong>Pagamento:</strong>
+                            Condições a combinar no momento da aprovação do pedido.
+                        </p>
+
+                        <p style="margin: 3px 0 0 0;">
+                            • A execução do serviço está sujeita
+                            à confirmação final das medidas no local.
+                        </p>
+
+                    </div>
+
+                </div>
+                `;
+
+
+            window.print();
+
+        }
+
+    </script>
+
+
+    <div id="area-impressao-pdf"></div>
+
 </body>
 </html>
