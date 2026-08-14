@@ -348,7 +348,26 @@
     <script>
         const SUPABASE_URL = 'https://vjjzshpxohuspwjtkvbc.supabase.co';
         const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZqanpzaHB4b2h1c3B3anRrdmJjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODUzNjA4NzMsImV4cCI6MjEwMDkzNjg3M30.F6kovNGiW0uSamSiTVLzSbECwxFdnH7BZzZ7OAvQywI';
-        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+        
+        let supabase = null;
+
+        // Inicialização defensiva do Supabase (Blindagem contra travamentos de CDN)
+        try {
+            if (window.supabase) {
+                supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+            } else {
+                throw new Error("SDK do Supabase não carregado.");
+            }
+        } catch (erroInit) {
+            console.error("Falha crítica ao conectar com o Supabase:", erroInit);
+            window.addEventListener('DOMContentLoaded', () => {
+                const msg = document.getElementById('auth-msg');
+                if (msg) {
+                    msg.style.color = '#f43f5e';
+                    msg.innerText = 'Erro ao carregar serviços de rede. Verifique sua conexão.';
+                }
+            });
+        }
 
         let currentUser = null;
         let tipoFatorAtual = 'facil';
@@ -368,9 +387,12 @@
             fatoresDificuldade: { facil: 0, medio: 40, dificil: 80 }
         };
 
+        // Função do olho isolada e totalmente independente de falhas de rede
         function togglePasswordVisibility() {
             const passwordInput = document.getElementById('auth-password');
             const eyeIcon = document.getElementById('eye-icon');
+            if (!passwordInput || !eyeIcon) return;
+
             if (passwordInput.type === 'password') {
                 passwordInput.type = 'text';
                 eyeIcon.classList.remove('fa-eye');
@@ -556,6 +578,7 @@
 
         function atualizarStatusRede() {
             const badge = document.getElementById('badge-status');
+            if (!badge) return;
             if (navigator.onLine) {
                 badge.className = "bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-[10px] font-bold px-3 py-1 rounded-full uppercase tracking-wider";
                 badge.innerText = "Online";
@@ -655,13 +678,14 @@
 
         function atualizarNomeMaterialSelecionado() {
             const select = document.getElementById('servico-material');
-            if (select.selectedIndex >= 0 && select.options[select.selectedIndex]) {
+            if (select && select.selectedIndex >= 0 && select.options[select.selectedIndex]) {
                 materialNomeSelecionado = select.options[select.selectedIndex].dataset.nome || "Adesivo / Serviço";
             }
         }
 
         function renderConfigMateriais(materiais) {
             const container = document.getElementById('lista-materials-config');
+            if (!container) return;
             container.innerHTML = '';
 
             if (!materiais || materiais.length === 0) {
@@ -685,6 +709,7 @@
             tipoFatorAtual = tipo;
             ['facil', 'medio', 'dificil'].forEach(b => {
                 const el = document.getElementById(`btn-fator-${b}`);
+                if (!el) return;
                 if (b === tipo) {
                     el.className = "fator-btn py-3.5 px-2 rounded-2xl border border-accentYellow bg-accentYellow text-darkBg font-bold transition-all flex flex-col items-center";
                 } else {
@@ -700,7 +725,7 @@
             
             atualizarNomeMaterialSelecionado();
             const selectMat = document.getElementById('servico-material');
-            const custoMaterialM2 = parseNumber(selectMat.value);
+            const custoMaterialM2 = parseNumber(selectMat ? selectMat.value : 0);
 
             if (largura <= 0 || altura <= 0) {
                 alert("Preencha a Largura e a Altura com valores válidos maior que zero!");
@@ -756,6 +781,7 @@
 
         async function renderHistorico() {
             const container = document.getElementById('lista-historico');
+            if (!container) return;
             container.innerHTML = '';
 
             if (currentUser && supabase) {
