@@ -1532,49 +1532,58 @@
                 }
 
 
-                if (
-                    error ||
-                    !perfil ||
-                    (
-                        perfil.status_assinatura !==
-                            'ativo' &&
-                        perfil.status_assinatura !==
-                            'vitalicio'
-                    )
-                ) {
+                const statusAtivo =
+    String(perfil?.status_assinatura || '').toLowerCase() === 'ativo';
 
-                    if (paywallModal) {
+const planoValido =
+    ['mensal', 'anual'].includes(
+        String(perfil?.plano_assinatura || '').toLowerCase()
+    );
 
-                        paywallModal
-                            .classList
-                            .remove('hidden');
+const validadeAssinatura =
+    perfil?.assinatura_valida_ate
+        ? new Date(perfil.assinatura_valida_ate).getTime()
+        : NaN;
 
-                    }
+const assinaturaValida =
+    Number.isFinite(validadeAssinatura) &&
+    validadeAssinatura > Date.now();
 
-                    return;
+if (
+    error ||
+    !perfil ||
+    !statusAtivo ||
+    !planoValido ||
+    !assinaturaValida
+) {
 
-                }
+    if (paywallModal) {
 
+        paywallModal
+            .classList
+            .remove('hidden');
 
-                if (paywallModal) {
+    }
 
-                    paywallModal
-                        .classList
-                        .add('hidden');
+    return;
 
-                }
+}
 
+if (paywallModal) {
 
-                await carregarConfiguracoesDoBanco(
-                    perfil
-                );
+    paywallModal
+        .classList
+        .add('hidden');
 
+}
 
-                await carregarMateriaisDoBanco();
+await carregarConfiguracoesDoBanco(
+    perfil
+);
 
+await carregarMateriaisDoBanco();
 
-                await renderHistorico();
-
+await renderHistorico();
 
             } catch (error) {
 
