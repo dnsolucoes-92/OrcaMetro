@@ -1538,7 +1538,10 @@
                 }
 
 
-                const statusAtivo =
+                const contaAdmin =
+    String(perfil?.tipo_conta || '').toLowerCase() === 'admin';
+
+const statusAtivo =
     String(perfil?.status_assinatura || '').toLowerCase() === 'ativo';
 
 const planoValido =
@@ -1558,21 +1561,20 @@ const assinaturaValida =
 if (
     error ||
     !perfil ||
-    !statusAtivo ||
-    !planoValido ||
-    !assinaturaValida
+    (
+        !contaAdmin &&
+        (
+            !statusAtivo ||
+            !planoValido ||
+            !assinaturaValida
+        )
+    )
 ) {
-
     if (paywallModal) {
-
-        paywallModal
-            .classList
-            .remove('hidden');
-
+        paywallModal.classList.remove('hidden');
     }
 
     return;
-
 }
 
 if (paywallModal) {
