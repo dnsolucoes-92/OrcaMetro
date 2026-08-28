@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Redefinir senha — OrçaMetro</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    *{box-sizing:border-box} body{margin:0;min-height:100vh;display:grid;place-items:center;background:#0b0f19;color:#e5e7eb;font-family:Arial,sans-serif;padding:20px}.card{width:min(100%,390px);background:#111827;border:1px solid #273244;border-radius:24px;padding:28px;box-shadow:0 24px 70px #0008}h1{margin:0;color:#fff;font-size:25px}h1 span{color:#f59e0b}p{color:#94a3b8;font-size:13px;line-height:1.55}.field{width:100%;border:1px solid #334155;background:#05080e;color:#fff;border-radius:12px;padding:14px;margin:8px 0;outline:none}.field:focus{border-color:#f59e0b}.button{width:100%;border:0;border-radius:12px;background:#f59e0b;color:#0b0f19;font-weight:800;padding:14px;margin-top:8px;cursor:pointer}.message{min-height:22px;font-size:12px;font-weight:700;margin-top:12px}.back{display:block;text-align:center;color:#f59e0b;font-size:12px;margin-top:14px;text-decoration:none}
+  </style>
+</head>
+<body>
+  <main class="card">
+    <h1>Orça<span>Metro</span></h1>
+    <p>Crie uma nova senha com pelo menos 6 caracteres.</p>
+    <input id="password" class="field" type="password" placeholder="Nova senha" autocomplete="new-password">
+    <input id="confirm" class="field" type="password" placeholder="Repita a nova senha" autocomplete="new-password">
+    <button id="save" class="button" type="button">Salvar nova senha</button>
+    <p id="message" class="message"></p>
+    <a class="back" href="/">Voltar ao OrçaMetro</a>
+  </main>
+  <script>
+    const client = window.supabase.createClient(
+      'https://iwunwkxsyocpzgoxcpdi.supabase.co',
+      'sb_publishable_jRmWclJf2NHa4nQCMVETVg_xlcQiMfP',
+      { auth: { detectSessionInUrl: true, persistSession: true } }
+    );
+    const message = document.getElementById('message');
+    document.getElementById('save').addEventListener('click', async () => {
+      const password = document.getElementById('password').value;
+      const confirm = document.getElementById('confirm').value;
+      if (password.length < 6) {
+        message.style.color = '#fb7185';
+        message.textContent = 'A senha deve ter pelo menos 6 caracteres.';
+        return;
+      }
+      if (password !== confirm) {
+        message.style.color = '#fb7185';
+        message.textContent = 'As senhas não são iguais.';
+        return;
+      }
+      message.style.color = '#38bdf8';
+      message.textContent = 'Salvando...';
+      const { error } = await client.auth.updateUser({ password });
+      if (error) {
+        message.style.color = '#fb7185';
+        message.textContent = 'O link expirou ou é inválido. Solicite uma nova recuperação.';
+        return;
+      }
+      message.style.color = '#34d399';
+      message.textContent = 'Senha atualizada. Você já pode voltar e entrar.';
+    });
+  </script>
+</body>
+</html>
