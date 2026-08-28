@@ -119,23 +119,24 @@
             <h3 class="text-xl font-extrabold text-white font-outfit mb-2">Escolha seu plano</h3>
             <p class="text-xs text-slate-400 mb-6 leading-relaxed">Seus 3 orçamentos gratuitos foram utilizados. Assine para continuar utilizando o OrçaMetro sem limites.</p>
 
-            <a id="btn-plano-mensal"
-               href="https://www.asaas.com/c/txgqynkfartfzmvm"
-               target="_blank"
-               rel="noopener noreferrer"
-               class="block w-full py-4 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-black rounded-2xl shadow-lg text-sm tracking-wide transition-all uppercase mb-3">
+            <button id="btn-plano-mensal"
+                type="button"
+                data-action="iniciarCheckout"
+                data-plano="mensal"
+                class="block w-full py-4 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 disabled:opacity-60 disabled:cursor-wait text-slate-950 font-black rounded-2xl shadow-lg text-sm tracking-wide transition-all uppercase mb-3">
                 <i class="fa-solid fa-calendar mr-2"></i>Plano Mensal — R$ 29,90
-            </a>
+            </button>
 
-            <a id="btn-plano-anual"
-               href="https://www.asaas.com/c/q5c7hxumwerbto2b"
-               target="_blank"
-               rel="noopener noreferrer"
-               class="block w-full py-4 bg-gradient-to-r from-emerald-400 to-emerald-600 hover:from-emerald-300 hover:to-emerald-500 text-slate-950 font-black rounded-2xl shadow-lg text-sm tracking-wide transition-all uppercase mb-3">
+            <button id="btn-plano-anual"
+                type="button"
+                data-action="iniciarCheckout"
+                data-plano="anual"
+                class="block w-full py-4 bg-gradient-to-r from-emerald-400 to-emerald-600 hover:from-emerald-300 hover:to-emerald-500 disabled:opacity-60 disabled:cursor-wait text-slate-950 font-black rounded-2xl shadow-lg text-sm tracking-wide transition-all uppercase mb-3">
                 <i class="fa-solid fa-calendar-check mr-2"></i>Plano Anual — R$ 297,00
-            </a>
+            </button>
 
-            <p class="text-[10px] text-slate-500 mb-4">Economize R$ 61,80 escolhendo o plano anual.</p>
+            <p class="text-[10px] text-slate-500 mb-2">Economize R$ 61,80 escolhendo o plano anual.</p>
+            <p id="checkout-msg" class="min-h-[1.25rem] text-xs font-semibold text-amber-400 mb-3"></p>
             <button data-action="fazerLogout" class="text-xs text-slate-500 hover:text-slate-300 font-semibold transition-all">Sair da conta</button>
         </div>
     </div>
@@ -478,6 +479,7 @@
                 if (action === 'fazerCadastro') return fazerCadastro();
                 if (action === 'recuperarSenha') return recuperarSenha();
                 if (action === 'fazerLogout') return fazerLogout();
+                if (action === 'iniciarCheckout') return iniciarCheckout(target.dataset.plano);
                 if (action === 'switchTab') return switchTab(target.dataset.tab);
                 if (action === 'setFatorTipo') return setFatorTipo(target.dataset.tipo);
                 if (action === 'calcularOrcamento') return calcularOrcamento();
@@ -577,7 +579,7 @@
 
             banner.classList.remove('hidden');
             if (temAcessoPago()) {
-                title.innerText = currentProfile.plano_assinatura === 'anual' ? 'Plano anual ativo' : 'Plano mensal ativo';
+                title.innerText = currentProfile.plano === 'anual' ? 'Plano anual ativo' : 'Plano mensal ativo';
                 text.innerText = 'Orçamentos ilimitados disponíveis.';
                 counter.innerText = 'ILIMITADO';
                 if (paywall) paywall.classList.add('hidden');
@@ -591,6 +593,71 @@
             text.innerText = restantes === 1 ? 'Este é seu último orçamento gratuito.' : `${restantes} orçamentos gratuitos disponíveis.`;
             counter.innerText = `${restantes} de ${limite}`;
             if (paywall) paywall.classList.toggle('hidden', !mostrarBloqueio || restantes > 0);
+        }
+
+        async function iniciarCheckout(plano) {
+            const msg = document.getElementById('checkout-msg');
+            const buttons = [
+                document.getElementById('btn-plano-mensal'),
+                document.getElementById('btn-plano-anual')
+            ].filter(Boolean);
+
+            if (!currentUser || !supabaseClient) {
+                if (msg) msg.innerText = 'Sua sessão expirou. Entre novamente.';
+                return;
+            }
+
+            if (!['mensal', 'anual'].includes(plano)) {
+                if (msg) msg.innerText = 'Plano inválido. Atualize a página.';
+                return;
+            }
+
+            buttons.forEach(button => button.disabled = true);
+            if (msg) {
+                msg.className = 'min-h-[1.25rem] text-xs font-semibold text-amber-400 mb-3';
+                msg.innerText = 'Preparando seu pagamento seguro...';
+            }
+
+            try {
+                const { data, error } = await supabaseClient.functions.invoke('asaas-criar-checkout', {
+                    body: { plano }
+                });
+
+                if (error) {
+                    let code = data?.error || '';
+                    try {
+                        if (!code && error.context && typeof error.context.json === 'function') {
+                            const details = await error.context.json();
+                            code = details?.error || '';
+                        }
+                    } catch (_) {}
+
+                    if (code === 'asaas_not_configured') {
+                        throw new Error('A integração de pagamento ainda está sendo configurada.');
+                    }
+                    if (code === 'subscription_already_active') {
+                        throw new Error('Sua assinatura já está ativa. Atualize a página.');
+                    }
+                    throw new Error('Não foi possível abrir o pagamento. Tente novamente.');
+                }
+
+                if (!data?.url || !String(data.url).startsWith('https://')) {
+                    throw new Error('O Asaas não retornou um endereço de pagamento válido.');
+                }
+
+                if (msg) {
+                    msg.className = 'min-h-[1.25rem] text-xs font-semibold text-emerald-400 mb-3';
+                    msg.innerText = 'Pagamento preparado. Abrindo o Asaas...';
+                }
+                window.location.assign(data.url);
+            } catch (error) {
+                console.error('Erro ao iniciar checkout:', error);
+                if (msg) {
+                    msg.className = 'min-h-[1.25rem] text-xs font-semibold text-rose-400 mb-3';
+                    msg.innerText = error?.message || 'Não foi possível abrir o pagamento.';
+                }
+                buttons.forEach(button => button.disabled = false);
+            }
         }
 
         async function fazerLogin() {
