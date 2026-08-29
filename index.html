@@ -791,7 +791,7 @@
             msg.style.color = '#38bdf8';
             msg.innerText = 'Enviando recuperação...';
             const { error } = await supabaseClient.auth.resetPasswordForEmail(email, {
-                redirectTo: 'https://orca-metro.vercel.app/redefinir-senha.html'
+                redirectTo: `${window.location.origin}/redefinir-senha.html`
             });
             if (error) {
                 msg.style.color = '#f43f5e';
