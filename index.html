@@ -101,6 +101,11 @@
                     Esqueci minha senha
                 </button>
 
+                <button type="button" data-action="abrirConfirmacaoPendente"
+                    class="w-full py-1 text-xs font-semibold text-slate-500 hover:text-slate-300 transition-all">
+                    Já recebi um código de confirmação
+                </button>
+
                 <label class="flex items-start gap-2 rounded-xl border border-slate-800 bg-black/20 p-3 text-left text-[10px] leading-relaxed text-slate-400">
                     <input id="auth-termos" type="checkbox" class="mt-0.5 accent-amber-500">
                     <span>Ao criar a conta, aceito os <a href="termos.html" target="_blank" class="text-amber-400 hover:underline">Termos de Uso</a> e a <a href="privacidade.html" target="_blank" class="text-amber-400 hover:underline">Política de Privacidade</a>.</span>
@@ -510,6 +515,7 @@
                 if (action === 'fazerCadastro') return fazerCadastro();
                 if (action === 'confirmarCodigo') return confirmarCodigo();
                 if (action === 'reenviarCodigo') return reenviarCodigo();
+                if (action === 'abrirConfirmacaoPendente') return abrirConfirmacaoPendente();
                 if (action === 'voltarParaAcesso') return mostrarPainelAcesso();
                 if (action === 'recuperarSenha') return recuperarSenha();
                 if (action === 'fazerLogout') return fazerLogout();
@@ -744,6 +750,14 @@
             try {
                 const { error } = await supabaseClient.auth.signInWithPassword({ email, password });
                 if (error) {
+                    if (/email not confirmed/i.test(error.message || '')) {
+                        mostrarPainelConfirmacao(email);
+                        if (msg) {
+                            msg.style.color = '#f59e0b';
+                            msg.innerText = 'Seu cadastro ainda não foi confirmado. Digite o código recebido ou solicite um novo.';
+                        }
+                        return;
+                    }
                     if (msg) {
                         msg.style.color = '#f43f5e';
                         msg.innerText = 'Erro ao entrar: ' + (error.message === 'Invalid login credentials' ? 'E-mail ou senha incorretos.' : error.message);
@@ -861,6 +875,26 @@
             }
 
             try { sessionStorage.setItem(PENDING_EMAIL_KEY, pendingSignupEmail); } catch (_) {}
+        }
+
+        function abrirConfirmacaoPendente() {
+            const msg = document.getElementById('auth-msg');
+            const email = document.getElementById('auth-email')?.value.trim();
+
+            if (!email) {
+                if (msg) {
+                    msg.style.color = '#f43f5e';
+                    msg.innerText = 'Informe o e-mail do cadastro para confirmar a conta.';
+                }
+                document.getElementById('auth-email')?.focus();
+                return;
+            }
+
+            mostrarPainelConfirmacao(email);
+            if (msg) {
+                msg.style.color = '#94a3b8';
+                msg.innerText = 'Digite o código recebido ou toque em “Reenviar código”.';
+            }
         }
 
         function mostrarPainelAcesso() {
