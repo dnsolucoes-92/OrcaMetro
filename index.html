@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="application-version" content="3.5.2">
-    <title>OrçaMetro - Profissional V3.5.2</title>
+    <meta name="application-version" content="3.5.3">
+    <title>OrçaMetro - Profissional V3.5.3</title>
     <meta name="description" content="Orçamentos rápidos para instaladores: material, medidas, deslocamento e margem. Faça 3 orçamentos gratuitos e envie pelo WhatsApp ou PDF.">
     <link rel="canonical" href="https://orca-metro.pages.dev/">
 
@@ -140,8 +140,10 @@
             </button>
 
             <p class="text-[10px] text-slate-500 mb-2">Economize R$ 61,80 escolhendo o plano anual.</p>
+            <p class="text-[11px] text-slate-400 mb-3">Mensal e anual têm renovação automática no Asaas. Você pode cancelar as próximas renovações em Configurar → Minha conta, mantendo o período já pago.</p>
             <p id="checkout-msg" role="status" aria-live="polite" class="min-h-[1.25rem] text-xs font-semibold text-amber-400 mb-3"></p>
             <button type="button" data-action="verificarAssinatura" class="block w-full py-2 mb-3 text-xs text-amber-400 font-semibold">Já paguei — atualizar acesso</button>
+            <button type="button" data-action="acessarMinhaConta" class="block w-full py-2 mb-3 text-xs text-white font-semibold">Ver minha conta, dados e assinatura</button>
             <button data-action="fazerLogout" class="text-xs text-slate-500 hover:text-slate-300 font-semibold transition-all">Sair da conta</button>
         </div>
     </div>
@@ -153,7 +155,7 @@
             </div>
             <div>
                 <h1 class="text-xl font-extrabold text-white tracking-wide font-outfit">Orça<span class="text-accentYellow">Metro</span></h1>
-                <p id="app-version-label" class="text-[10px] text-amber-500 font-bold tracking-widest uppercase">Profissional V3.5.2</p>
+                <p id="app-version-label" class="text-[10px] text-amber-500 font-bold tracking-widest uppercase">Profissional V3.5.3</p>
             </div>
         </div>
         <div class="flex items-center gap-2">
@@ -314,6 +316,66 @@
     </main>
 
     <main id="view-configurar" class="max-w-md mx-auto px-5 mt-6 space-y-5 hidden">
+        <section id="account-panel" class="glass-card p-5 rounded-3xl space-y-4">
+            <h2 class="text-sm font-bold text-white"><i class="fa-solid fa-user-shield mr-2 text-accentYellow"></i>Minha conta e assinatura</h2>
+            <p class="text-xs text-gray-400">Seu acesso, suas cobranças e sua escolha de continuar.</p>
+            <div class="rounded-xl bg-black/30 p-3 text-xs space-y-1">
+                <span class="text-gray-400">E-mail de acesso</span>
+                <p id="account-email" class="font-semibold text-white break-all">Entre para ver sua conta.</p>
+                <p class="text-[11px] text-gray-400">Acesso sem confirmação de e-mail. Confira o endereço: ele não comprova a titularidade. Para alterá-lo, fale com o suporte; será necessário verificar que a conta é sua.</p>
+            </div>
+            <dl class="grid grid-cols-2 gap-3 text-xs">
+                <div><dt class="text-gray-400">Plano</dt><dd id="account-plan" class="font-bold mt-1">—</dd></div>
+                <div><dt class="text-gray-400">Situação do acesso</dt><dd id="account-status" class="font-bold mt-1">—</dd></div>
+                <div><dt class="text-gray-400">Acesso pago até</dt><dd id="account-expiry" class="font-bold mt-1">—</dd></div>
+                <div><dt class="text-gray-400">Tempo restante</dt><dd id="account-days" class="font-bold mt-1">—</dd></div>
+            </dl>
+            <div class="rounded-xl border border-gray-700 p-3 text-xs space-y-2">
+                <p id="account-price" class="font-semibold">Preço: consulte sua assinatura.</p>
+                <p id="account-renewal" class="text-gray-300">Renovação: ainda não consultada.</p>
+                <p id="account-next" class="text-gray-400">Próxima cobrança: ainda não consultada.</p>
+            </div>
+            <button type="button" id="account-refresh" data-action="consultarMinhaAssinatura" class="w-full rounded-xl bg-gray-800 py-3 text-xs font-bold">Atualizar assinatura e cobranças</button>
+            <button type="button" id="account-cancel-open" data-action="abrirCancelamento" disabled class="hidden w-full rounded-xl border border-rose-500/40 text-rose-300 py-3 text-xs font-bold">Cancelar renovação</button>
+            <div id="account-cancel-panel" class="hidden rounded-xl border border-rose-500/30 p-4 space-y-3">
+                <p class="text-sm font-bold">Quer parar as próximas renovações?</p>
+                <p class="text-xs text-gray-300">Esta ação encerra a recorrência no Asaas. O período já pago permanece disponível até o vencimento mostrado acima, e seu histórico não será apagado. Não é um pedido de reembolso.</p>
+                <p class="text-xs text-gray-400">Para continuar depois do período pago, será necessário contratar uma nova assinatura. Nenhum novo pagamento será feito por este botão.</p>
+                <label class="flex gap-2 text-xs text-gray-300"><input type="checkbox" id="account-cancel-confirm" class="mt-0.5">Entendi e quero cancelar a renovação.</label>
+                <div class="flex gap-2">
+                    <button type="button" id="account-cancel-submit" data-action="cancelarMinhaRenovacao" class="flex-1 bg-rose-600 rounded-xl py-3 text-xs font-bold">Confirmar cancelamento</button>
+                    <button type="button" data-action="fecharCancelamento" class="flex-1 bg-gray-800 rounded-xl py-3 text-xs font-bold">Voltar</button>
+                </div>
+            </div>
+            <p id="account-msg" role="status" aria-live="polite" class="min-h-[1rem] text-xs leading-relaxed text-amber-300"></p>
+            <details class="border-t border-gray-800 pt-3">
+                <summary class="cursor-pointer text-xs font-bold">Cobranças e comprovantes</summary>
+                <p class="text-[11px] text-gray-400 mt-2">Dados do Asaas, atualizados pelo botão acima. Comprovante de pagamento não é nota fiscal.</p>
+                <div id="account-payments" class="mt-3 space-y-3 text-xs text-gray-400">Consulte sua assinatura para carregar as cobranças.</div>
+            </details>
+            <details class="border-t border-gray-800 pt-3">
+                <summary class="cursor-pointer text-xs font-bold">Alterar senha</summary>
+                <p class="text-[11px] text-gray-400 mt-2">Usaremos sua senha atual para confirmar o acesso. Ao concluir, entre novamente com a nova senha. Esta conta pode ser usada também nos outros aplicativos DN.</p>
+                <div class="mt-3 space-y-3">
+                    <div><label for="account-current-password" class="block text-xs text-gray-400 mb-1">Senha atual</label><input id="account-current-password" type="password" autocomplete="current-password" maxlength="128" class="w-full bg-black/40 border border-gray-700 rounded-xl px-3 py-3 text-sm"></div>
+                    <div><label for="account-new-password" class="block text-xs text-gray-400 mb-1">Nova senha (mínimo 8 caracteres)</label><input id="account-new-password" type="password" autocomplete="new-password" minlength="8" maxlength="128" class="w-full bg-black/40 border border-gray-700 rounded-xl px-3 py-3 text-sm"></div>
+                    <div><label for="account-confirm-password" class="block text-xs text-gray-400 mb-1">Repita a nova senha</label><input id="account-confirm-password" type="password" autocomplete="new-password" minlength="8" maxlength="128" class="w-full bg-black/40 border border-gray-700 rounded-xl px-3 py-3 text-sm"></div>
+                    <p class="text-[11px] text-gray-400">Prefira uma senha longa e exclusiva, sem nomes ou datas. Não compartilhe sua senha com o suporte.</p>
+                    <button type="button" id="account-password-submit" data-action="alterarMinhaSenha" class="w-full bg-gray-800 rounded-xl py-3 text-xs font-bold">Salvar nova senha</button>
+                    <p id="account-password-msg" role="status" aria-live="polite" class="text-xs text-amber-300"></p>
+                </div>
+            </details>
+            <details class="border-t border-gray-800 pt-3">
+                <summary class="cursor-pointer text-xs font-bold">Meus dados e suporte</summary>
+                <p class="text-[11px] text-gray-400 mt-2">Baixe sua configuração, materiais e histórico em JSON. O arquivo contém informações dos seus clientes; guarde-o com cuidado.</p>
+                <button type="button" id="account-export" data-action="exportarMeusDados" class="w-full mt-3 bg-gray-800 rounded-xl py-3 text-xs font-bold">Exportar meus dados</button>
+                <p id="account-export-msg" role="status" aria-live="polite" class="text-xs text-amber-300 mt-2"></p>
+                <a href="mailto:dn_grafica@hotmail.com?subject=Suporte%20OrcaMetro" class="block mt-3 text-xs text-accentYellow underline">Falar com o suporte</a>
+                <a href="mailto:dn_grafica@hotmail.com?subject=Solicitacao%20de%20exclusao%20de%20conta%20OrcaMetro" class="block mt-3 text-xs text-gray-400 underline">Solicitar exclusão da conta e dos dados</a>
+                <p class="text-[11px] text-gray-400 mt-2">Excluir a conta e cancelar a renovação são ações diferentes. Para interromper cobranças, use Cancelar renovação ou solicite isso expressamente ao suporte. Não envie senhas nem dados do cartão.</p>
+                <div class="flex gap-4 mt-3 text-xs text-gray-400"><a href="/termos" class="underline">Termos</a><a href="/privacidade" class="underline">Privacidade</a></div>
+            </details>
+        </section>
         <section class="glass-card p-5 rounded-3xl space-y-4">
             <h2 class="text-[10px] font-bold text-gray-400 uppercase tracking-wider"><i class="fa-solid fa-building mr-1.5 text-accentYellow"></i>Identidade da Oficina</h2>
             <div>
@@ -397,7 +459,7 @@
 
     <script>
         // Fonte única da versão exibida. Atualize somente este valor em novas versões.
-        const APP_VERSION = '3.5.2';
+        const APP_VERSION = '3.5.3';
         const SUPABASE_URL = 'https://iwunwkxsyocpzgoxcpdi.supabase.co';
         const SUPABASE_KEY = 'sb_publishable_jRmWclJf2NHa4nQCMVETVg_xlcQiMfP';
 
@@ -434,6 +496,11 @@
         let checkoutBusy = false;
         let sessionRevision = 0;
         let lastQuote = null;
+        let accountEpoch = 0;
+        let accountBusy = false;
+        let passwordBusy = false;
+        let exportBusy = false;
+        let accountBilling = null;
 
         const configPadrao = {
             empresa: "DN SOLUÇÕES",
@@ -499,6 +566,13 @@
                 if (action === 'fazerLogout') return fazerLogout();
                 if (action === 'iniciarCheckout') return iniciarCheckout(target.dataset.plano);
                 if (action === 'verificarAssinatura') return verificarAssinatura();
+                if (action === 'acessarMinhaConta') return acessarMinhaConta();
+                if (action === 'consultarMinhaAssinatura') return consultarMinhaAssinatura();
+                if (action === 'abrirCancelamento') return abrirCancelamento();
+                if (action === 'fecharCancelamento') return fecharCancelamento();
+                if (action === 'cancelarMinhaRenovacao') return cancelarMinhaRenovacao();
+                if (action === 'alterarMinhaSenha') return alterarMinhaSenha();
+                if (action === 'exportarMeusDados') return exportarMeusDados();
                 if (action === 'switchTab') return switchTab(target.dataset.tab);
                 if (action === 'setFatorTipo') return setFatorTipo(target.dataset.tipo);
                 if (action === 'calcularOrcamento') return calcularOrcamento();
@@ -597,6 +671,7 @@
             const paywallModal = document.getElementById('paywall-modal');
             const btnLogout = document.getElementById('btn-logout');
             if (!session) {
+                limparMinhaConta();
                 currentUser = null;
                 currentProfile = null;
                 limparResultado();
@@ -610,6 +685,7 @@
                 return false;
             }
             const mudouUsuario = currentUser?.id !== session.user.id;
+            if (mudouUsuario) limparMinhaConta();
             if (mudouUsuario) limparResultado();
             currentUser = session.user;
             if (mudouUsuario || !currentProfile) {
@@ -631,6 +707,7 @@
                 }
                 if (revision !== sessionRevision) return false;
                 atualizarInterfacePlano();
+                renderMinhaConta();
                 const retornoPagamento = new URLSearchParams(window.location.search || '').get('pagamento');
                 const checkoutMsg = document.getElementById('checkout-msg');
                 if (retornoPagamento === 'sucesso' && !temAcessoPago()) checkoutMsg.innerText = 'Aguardando confirmação do pagamento pelo Asaas. Use “Já paguei — atualizar acesso” em alguns instantes. Não faça outro pagamento.';
@@ -683,6 +760,284 @@
             text.innerText = restantes === 1 ? 'Este é seu último orçamento gratuito.' : `${restantes} orçamentos gratuitos disponíveis.`;
             counter.innerText = `${restantes} de ${limite}`;
             if (paywall) paywall.classList.toggle('hidden', !mostrarBloqueio || restantes > 0);
+        }
+
+        function limparMinhaConta() {
+            accountEpoch++;
+            accountBusy = passwordBusy = exportBusy = false;
+            accountBilling = null;
+            fecharCancelamento();
+            ['account-current-password', 'account-new-password', 'account-confirm-password'].forEach(id => document.getElementById(id).value = '');
+            ['account-msg', 'account-password-msg', 'account-export-msg'].forEach(id => document.getElementById(id).innerText = '');
+            ['account-plan', 'account-status', 'account-expiry', 'account-days'].forEach(id => document.getElementById(id).innerText = '—');
+            document.getElementById('account-email').innerText = 'Entre para ver sua conta.';
+            document.getElementById('account-price').innerText = 'Preço: consulte sua assinatura.';
+            document.getElementById('account-renewal').innerText = 'Renovação: ainda não consultada.';
+            document.getElementById('account-next').innerText = 'Próxima cobrança: ainda não consultada.';
+            document.getElementById('account-payments').innerHTML = '';
+            document.getElementById('account-cancel-open').classList.add('hidden');
+            document.getElementById('account-cancel-open').disabled = true;
+        }
+
+        function formatarDataConta(value) {
+            if (!value) return 'Não informado';
+            const date = new Date(/^\d{4}-\d{2}-\d{2}$/.test(String(value)) ? value + 'T12:00:00Z' : value);
+            return Number.isNaN(date.getTime()) ? 'Não informado' : date.toLocaleDateString('pt-BR', { timeZone: 'America/Sao_Paulo' });
+        }
+
+        function diasRestantesConta(value, now = Date.now()) {
+            const time = new Date(value).getTime();
+            if (!value || !Number.isFinite(time)) return 'Não informado';
+            const delta = time - now;
+            if (delta <= 0) return 'Período encerrado';
+            if (delta < 86400000) return 'Menos de 1 dia';
+            const days = Math.ceil(delta / 86400000);
+            return `${days} dias`;
+        }
+
+        function renderMinhaConta() {
+            if (!currentUser || !currentProfile) return;
+            const protectedPlan = currentProfile.status_assinatura === 'vitalicio' || currentProfile.plano === 'administrador';
+            const trial = !['mensal', 'anual', 'administrador'].includes(currentProfile.plano) && !protectedPlan;
+            document.getElementById('account-email').innerText = currentUser.email || 'E-mail não disponível';
+            document.getElementById('account-plan').innerText = currentProfile.plano === 'administrador' ? 'Administrativo'
+                : currentProfile.status_assinatura === 'vitalicio' ? 'Vitalício'
+                : currentProfile.plano === 'anual' ? 'Anual' : currentProfile.plano === 'mensal' ? 'Mensal' : 'Teste gratuito';
+            document.getElementById('account-status').innerText = temAcessoPago() ? 'Ativo'
+                : currentProfile.status_assinatura === 'teste' ? 'Teste gratuito'
+                : currentProfile.status_assinatura === 'inadimplente' ? 'Pagamento pendente'
+                : currentProfile.status_assinatura === 'cancelado' ? 'Acesso pago suspenso' : 'Período pago encerrado';
+            document.getElementById('account-expiry').innerText = protectedPlan ? 'Sem vencimento' : trial ? 'Não se aplica'
+                : formatarDataConta(currentProfile.vencimento_assinatura);
+            document.getElementById('account-days').innerText = protectedPlan ? 'Sem limite de prazo'
+                : trial ? `${Math.max(Number(currentProfile.limite_gratis ?? 3) - Number(currentProfile.orcamentos_gratis_usados ?? 0), 0)} orçamentos restantes`
+                : diasRestantesConta(currentProfile.vencimento_assinatura);
+            const value = accountBilling?.valor;
+            document.getElementById('account-price').innerText = Number.isFinite(value) && value > 0
+                ? `${value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })} ${accountBilling.ciclo === 'YEARLY' ? 'por ano' : accountBilling.ciclo === 'MONTHLY' ? 'por mês' : 'por ciclo'}`
+                : protectedPlan ? 'Sem cobrança recorrente pelo aplicativo.' : trial ? 'Teste sem cobrança. Planos: R$ 29,90/mês ou R$ 297,00/ano.'
+                : 'Preço: atualize a consulta para confirmar o valor no Asaas.';
+            const renewal = accountBilling?.renovacao || currentProfile.renovacao_status || 'desconhecida';
+            const labels = { ativa: 'Renovação automática ativa.', cancelada: 'Renovação cancelada. Nenhuma nova recorrência será gerada.',
+                cancelamento_pendente: 'Cancelamento ainda não confirmado. Atualize a consulta ou fale com o suporte.',
+                desconhecida: 'Renovação ainda não confirmada. Consulte o Asaas pelo botão abaixo.', nao_aplicavel: 'Sem renovação recorrente.' };
+            document.getElementById('account-renewal').innerText = protectedPlan || trial && !accountBilling
+                ? labels.nao_aplicavel : labels[renewal] || labels.desconhecida;
+            document.getElementById('account-next').innerText = protectedPlan || renewal === 'cancelada'
+                ? 'Próxima renovação: não programada.' : accountBilling?.proxima_cobranca
+                ? 'Próxima cobrança prevista: ' + formatarDataConta(accountBilling.proxima_cobranca)
+                : trial && !accountBilling ? 'Teste gratuito: nenhuma cobrança contratada nesta tela.' : 'Próxima cobrança: não confirmada.';
+            const cancel = document.getElementById('account-cancel-open');
+            cancel.classList.toggle('hidden', !accountBilling?.pode_cancelar || protectedPlan);
+            cancel.disabled = accountBusy || !accountBilling?.pode_cancelar;
+            cancel.innerText = renewal === 'cancelamento_pendente' ? 'Tentar confirmar cancelamento' : 'Cancelar renovação';
+            document.getElementById('account-refresh').disabled = accountBusy;
+            document.getElementById('account-cancel-submit').disabled = accountBusy;
+            document.getElementById('account-password-submit').disabled = passwordBusy;
+            document.getElementById('account-export').disabled = exportBusy;
+        }
+
+        function linkAsaasSeguro(value) {
+            try {
+                const url = new URL(value);
+                return url.protocol === 'https:' && /(^|\.)asaas\.com$/.test(url.hostname)
+                    && !url.username && !url.password ? url.href : '';
+            } catch (_) { return ''; }
+        }
+
+        function renderCobrancasConta(data) {
+            const area = document.getElementById('account-payments');
+            area.innerHTML = '';
+            const statuses = { PENDING: 'Aguardando pagamento', RECEIVED: 'Pago', CONFIRMED: 'Pagamento confirmado', OVERDUE: 'Vencida',
+                REFUNDED: 'Estornada', REFUND_REQUESTED: 'Estorno solicitado', CHARGEBACK_REQUESTED: 'Contestada', DELETED: 'Excluída' };
+            const payments = Array.isArray(data?.cobrancas) ? data.cobrancas : [];
+            payments.forEach(payment => {
+                const card = document.createElement('div');
+                card.className = 'rounded-xl bg-black/30 p-3 space-y-2';
+                const price = Number.isFinite(payment.valor) ? payment.valor.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }) : 'Valor não informado';
+                const text = document.createElement('p');
+                text.textContent = `${price} • ${statuses[payment.status] || 'Situação: ' + String(payment.status || 'não informada')} • Vencimento: ${formatarDataConta(payment.vencimento)}`;
+                card.appendChild(text);
+                for (const [field, title] of [['link', 'Ver cobrança no Asaas'], ['comprovante', 'Ver comprovante de pagamento']]) {
+                    const href = linkAsaasSeguro(payment[field]);
+                    if (!href) continue;
+                    const link = document.createElement('a');
+                    link.href = href; link.target = '_blank'; link.rel = 'noopener noreferrer';
+                    link.className = 'block text-accentYellow underline'; link.textContent = title;
+                    card.appendChild(link);
+                }
+                area.appendChild(card);
+            });
+            const notice = document.createElement('p');
+            notice.textContent = data?.consulta_cobrancas === 'indisponivel' ? 'Não foi possível consultar as cobranças. Tente atualizar ou fale com o suporte.'
+                : data?.consulta_cobrancas === 'ultimas_20' ? 'Exibindo as 20 cobranças mais recentes. Para registros anteriores, solicite ao suporte.'
+                : payments.length ? 'Consulta atualizada. A compensação pode levar algum tempo.'
+                : ['sem_assinatura_vinculada', 'nao_aplicavel', 'sem_assinatura'].includes(data?.consulta_cobrancas)
+                ? 'Nenhuma assinatura recorrente vinculada para consulta. Se você já pagou, fale com o suporte; não pague novamente.'
+                : 'Nenhuma cobrança encontrada para esta assinatura.';
+            area.appendChild(notice);
+        }
+
+        async function respostaMinhaAssinatura(body) {
+            const { data, error } = await supabaseClient.functions.invoke('orcametro-minha-assinatura', { body });
+            if (error || data?.error) {
+                let details = data;
+                try { if (error?.context?.json) details = await error.context.json(); } catch (_) {}
+                const code = details?.error || '';
+                const messages = { unauthorized: 'Entre novamente para consultar sua conta.', invalid_session: 'Sua sessão expirou. Entre novamente.',
+                    subscription_not_linked: 'Não foi possível localizar sua assinatura. Fale com o suporte; não faça outro pagamento.',
+                    no_recurring_subscription: 'Este acesso não possui assinatura recorrente para cancelar.',
+                    cancellation_not_confirmed: 'O cancelamento NÃO foi confirmado. Tente atualizar a consulta ou fale com o suporte. Não considere a cobrança interrompida ainda.',
+                    cancellation_persistence_failed: 'Não foi possível registrar o pedido. Nenhum cancelamento foi confirmado. Tente novamente.',
+                    subscription_ownership_mismatch: 'Não foi possível validar a titularidade da assinatura. Fale com o suporte.',
+                    subscription_verification_failed: 'Não foi possível confirmar a assinatura no Asaas. Atualize ou fale com o suporte.',
+                    asaas_not_configured: 'A consulta de cobrança está indisponível. Fale com o suporte.' };
+                throw new Error(messages[code] || 'Não foi possível consultar o Asaas. Verifique a conexão e tente novamente.');
+            }
+            if (!data || typeof data !== 'object') throw new Error('A consulta retornou uma resposta inválida. Tente novamente.');
+            return data;
+        }
+
+        async function consultarMinhaAssinatura() {
+            if (accountBusy || !currentUser || !supabaseClient) return;
+            const epoch = accountEpoch, userId = currentUser.id;
+            accountBusy = true; renderMinhaConta();
+            document.getElementById('account-msg').innerText = 'Consultando sua assinatura e cobranças...';
+            try {
+                const data = await respostaMinhaAssinatura({ acao: 'consultar' });
+                if (epoch !== accountEpoch || currentUser?.id !== userId) return;
+                accountBilling = data;
+                renderCobrancasConta(data);
+                document.getElementById('account-msg').innerText = data.renovacao === 'cancelamento_pendente'
+                    ? 'O cancelamento ainda não foi confirmado. Você pode tentar novamente ou falar com o suporte.' : 'Consulta atualizada. Seu acesso depende da confirmação e do período pago.';
+            } catch (error) {
+                if (epoch !== accountEpoch || currentUser?.id !== userId) return;
+                accountBilling = null;
+                document.getElementById('account-msg').innerText = error.message;
+                document.getElementById('account-payments').innerText = 'Consulta indisponível. Nenhum dado de cobrança foi confirmado agora.';
+                fecharCancelamento();
+            } finally {
+                if (epoch === accountEpoch && currentUser?.id === userId) { accountBusy = false; renderMinhaConta(); }
+            }
+        }
+
+        function abrirCancelamento() {
+            if (accountBusy || !currentUser || !accountBilling?.pode_cancelar) return;
+            document.getElementById('account-cancel-confirm').checked = false;
+            document.getElementById('account-cancel-panel').classList.remove('hidden');
+        }
+        function acessarMinhaConta() {
+            if (!currentUser) return;
+            document.getElementById('paywall-modal').classList.add('hidden');
+            switchTab('configurar');
+        }
+        function fecharCancelamento() {
+            document.getElementById('account-cancel-panel').classList.add('hidden');
+            document.getElementById('account-cancel-confirm').checked = false;
+        }
+        async function cancelarMinhaRenovacao() {
+            if (accountBusy || !currentUser || !accountBilling?.pode_cancelar || !supabaseClient) return;
+            const msg = document.getElementById('account-msg');
+            if (!document.getElementById('account-cancel-confirm').checked) { msg.innerText = 'Marque a confirmação para cancelar a renovação.'; return; }
+            const epoch = accountEpoch, userId = currentUser.id;
+            accountBusy = true; renderMinhaConta();
+            msg.innerText = 'Solicitando cancelamento ao Asaas. Aguarde a confirmação...';
+            try {
+                const data = await respostaMinhaAssinatura({ acao: 'cancelar_renovacao', confirmacao: 'CANCELAR RENOVACAO' });
+                if (epoch !== accountEpoch || currentUser?.id !== userId) return;
+                if (data.cancelamento_confirmado === true && data.renovacao === 'cancelada') {
+                    accountBilling = { ...accountBilling, ...data, pode_cancelar: false };
+                    currentProfile.renovacao_status = 'cancelada';
+                    msg.innerText = 'Renovação cancelada no Asaas. O acesso ao período já pago e o seu histórico foram preservados. Não houve reembolso.';
+                } else {
+                    accountBilling = { ...accountBilling, renovacao: 'cancelamento_pendente', pode_cancelar: true, proxima_cobranca: null };
+                    msg.innerText = 'Pedido enviado, mas o cancelamento ainda NÃO está confirmado. Atualize a consulta ou fale com o suporte.';
+                }
+                fecharCancelamento();
+            } catch (error) {
+                if (epoch === accountEpoch && currentUser?.id === userId) msg.innerText = error.message;
+            } finally {
+                if (epoch === accountEpoch && currentUser?.id === userId) { accountBusy = false; renderMinhaConta(); }
+            }
+        }
+
+        async function alterarMinhaSenha() {
+            if (passwordBusy || !currentUser?.email || !supabaseClient) return;
+            const msg = document.getElementById('account-password-msg');
+            const currentPassword = document.getElementById('account-current-password').value;
+            const password = document.getElementById('account-new-password').value;
+            const confirmation = document.getElementById('account-confirm-password').value;
+            if (!currentPassword) { msg.innerText = 'Informe sua senha atual.'; return; }
+            if (password.length < 8 || password.length > 128) { msg.innerText = 'Use uma nova senha com 8 a 128 caracteres.'; return; }
+            if (password !== confirmation) { msg.innerText = 'A nova senha e a repetição não são iguais.'; return; }
+            if (password === currentPassword) { msg.innerText = 'A nova senha deve ser diferente da atual.'; return; }
+            const epoch = accountEpoch, userId = currentUser.id, email = currentUser.email;
+            passwordBusy = true; renderMinhaConta(); msg.innerText = 'Confirmando sua senha atual...';
+            // Isolated, non-persistent session: verification cannot replace another tab/user session.
+            const verifier = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY, { auth: {
+                persistSession: false, autoRefreshToken: false, detectSessionInUrl: false,
+            } });
+            let changed = false;
+            try {
+                const checked = await verifier.auth.signInWithPassword({ email, password: currentPassword });
+                if (epoch !== accountEpoch || currentUser?.id !== userId) return;
+                if (checked.error || checked.data?.user?.id !== userId) { msg.innerText = 'Senha atual incorreta ou verificação indisponível. Nenhuma senha foi alterada.'; return; }
+                const updated = await verifier.auth.updateUser({ password, current_password: currentPassword });
+                if (updated.error) {
+                    if (epoch === accountEpoch) msg.innerText = 'Não foi possível alterar a senha. Use uma senha forte e tente novamente; se persistir, fale com o suporte.';
+                    return;
+                }
+                changed = true;
+                if (epoch !== accountEpoch || currentUser?.id !== userId) return;
+                await supabaseClient.auth.signOut({ scope: 'local' });
+                await tratarSessao(null);
+                mensagemAuth('Senha alterada. Entre novamente usando sua nova senha.', '#34d399');
+            } catch (_) {
+                if (epoch === accountEpoch && currentUser?.id === userId) msg.innerText = changed
+                    ? 'Senha alterada. Saia da conta e entre com a nova senha.' : 'Não foi possível confirmar a troca. Verifique sua conexão e tente novamente.';
+            } finally {
+                await verifier.auth.signOut({ scope: 'local' }).catch(() => {});
+                if (epoch === accountEpoch && currentUser?.id === userId) {
+                    ['account-current-password', 'account-new-password', 'account-confirm-password'].forEach(id => document.getElementById(id).value = '');
+                    passwordBusy = false; renderMinhaConta();
+                }
+            }
+        }
+
+        async function exportarMeusDados() {
+            if (exportBusy || !currentUser || !currentProfile || !supabaseClient) return;
+            const epoch = accountEpoch, userId = currentUser.id;
+            const own = () => epoch === accountEpoch && currentUser?.id === userId;
+            const msg = document.getElementById('account-export-msg');
+            exportBusy = true; renderMinhaConta(); msg.innerText = 'Preparando sua cópia dos dados...';
+            const rows = async table => {
+                const output = [];
+                for (let start = 0; start < 20000; start += 500) {
+                    if (!own()) throw new Error('Sessão alterada');
+                    const { data, error } = await supabaseClient.from(table).select('*').eq('user_id', userId)
+                        .order('id', { ascending: true }).range(start, start + 499);
+                    if (error || !Array.isArray(data)) throw new Error('Dados indisponíveis');
+                    if (data.some(row => row.user_id && row.user_id !== userId)) throw new Error('Dados inválidos');
+                    output.push(...data);
+                    if (data.length < 500) return output;
+                }
+                throw new Error('Exportação muito grande. Solicite uma cópia completa ao suporte.');
+            };
+            try {
+                const [materials, quotes] = await Promise.all([rows('orcametro_materiais'), rows('orcametro_orcamentos')]);
+                if (!own()) return;
+                const settings = {};
+                for (const key of ['empresa', 'margem_lucro', 'valor_km', 'taxa_base', 'validade', 'whatsapp', 'fatores_dificuldade', 'termos_aceitos_em']) settings[key] = currentProfile[key];
+                const exported = { ferramenta: 'OrçaMetro', versao: APP_VERSION, exportado_em: new Date().toISOString(),
+                    conta: { email: currentUser.email, configuracoes: settings }, materiais: materials, orcamentos: quotes };
+                const url = URL.createObjectURL(new Blob([JSON.stringify(exported, null, 2)], { type: 'application/json' }));
+                const link = document.createElement('a'); link.href = url;
+                link.download = 'orcametro-meus-dados-' + new Date().toISOString().slice(0, 10) + '.json';
+                document.body.appendChild(link); link.click(); link.remove(); setTimeout(() => URL.revokeObjectURL(url), 1000);
+                msg.innerText = 'Arquivo preparado para download. Guarde esta cópia com cuidado: ela contém seus dados e orçamentos.';
+            } catch (error) {
+                if (own()) msg.innerText = 'Não foi possível gerar uma cópia completa. Tente novamente ou solicite ao suporte. Nenhum arquivo parcial foi gerado.';
+            } finally { if (own()) { exportBusy = false; renderMinhaConta(); } }
         }
 
         async function verificarAssinatura() {
@@ -744,8 +1099,8 @@
                     if (code === 'asaas_not_configured') {
                         throw new Error('A integração de pagamento ainda está sendo configurada.');
                     }
-                    if (code === 'subscription_already_active') {
-                        throw new Error('Sua assinatura já está ativa. Atualize a página.');
+                    if (code === 'subscription_already_active' || code === 'subscription_requires_review') {
+                        throw new Error('Há uma assinatura vinculada. Confira Configurar → Minha conta antes de iniciar outro pagamento.');
                     }
                     throw new Error('Não foi possível abrir o pagamento. Tente novamente.');
                 }
@@ -794,7 +1149,7 @@
             const email = emailValido();
             const password = document.getElementById('auth-password').value;
             if (!email) return;
-            if (password.length < 6) return mensagemAuth('Use uma senha com pelo menos 6 caracteres.');
+            if (password.length < 8 || password.length > 128) return mensagemAuth('Use uma senha com 8 a 128 caracteres, longa e exclusiva.');
             if (!document.getElementById('auth-termos').checked) return mensagemAuth('Aceite os Termos e a Política de Privacidade para criar a conta.');
             if (!supabaseClient) return mensagemAuth('Não foi possível carregar o acesso. Atualize a página.');
             ocuparAuth(true);
@@ -879,6 +1234,7 @@
             } else if (tab === 'configurar') {
                 document.getElementById('view-configurar').classList.remove('hidden');
                 document.getElementById('tab-configurar').className = "flex-1 py-3 text-xs font-bold rounded-xl transition-all duration-300 bg-accentYellow text-darkBg shadow-md";
+                renderMinhaConta();
             }
         }
 

@@ -13,11 +13,11 @@
 <body>
   <main class="card">
     <h1>Orça<span>Metro</span></h1>
-    <p>Defina uma nova senha com pelo menos 6 caracteres.</p>
+    <p>Defina uma senha longa e exclusiva com pelo menos 8 caracteres.</p>
     <label for="password">Nova senha</label>
-    <input id="password" class="field" type="password" autocomplete="new-password" minlength="6" required>
+    <input id="password" class="field" type="password" autocomplete="new-password" minlength="8" maxlength="128" required>
     <label for="confirm">Repita a nova senha</label>
-    <input id="confirm" class="field" type="password" autocomplete="new-password" minlength="6" required>
+    <input id="confirm" class="field" type="password" autocomplete="new-password" minlength="8" maxlength="128" required>
     <button id="save" class="button" type="button" disabled>Salvar nova senha</button>
     <p id="message" class="message" role="status" aria-live="polite">Verificando o link de recuperação...</p>
     <a class="back" href="/">Voltar ao OrçaMetro</a>
@@ -44,7 +44,7 @@
       if (!client || !ready || busy) return;
       const password = document.getElementById('password').value;
       const confirm = document.getElementById('confirm').value;
-      if (password.length < 6) return show('Use uma senha com pelo menos 6 caracteres.');
+      if (password.length < 8 || password.length > 128) return show('Use uma senha com 8 a 128 caracteres.');
       if (password !== confirm) return show('As senhas não são iguais.');
       busy = true; save.disabled = true; save.setAttribute('aria-busy', 'true');
       show('Salvando nova senha...', '#38bdf8');
