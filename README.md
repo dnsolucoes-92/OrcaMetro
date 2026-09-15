@@ -50,6 +50,6 @@ Este repositório público contém apenas a interface e suas ferramentas de buil
 
 ## Página de vendas e amostra interativa
 
-Página `3.5.3-demo.1`, compatível com o aplicativo V3.5.3. `vendas.html` e `vendas/index.html` devem permanecer idênticos. A amostra usa a mesma fórmula de área, material, frete, instalação com dificuldade e adicional de lucro sobre os custos do aplicativo. Aceita vírgula decimal, preserva valores zero permitidos e oculta resultados quando a entrada é inválida.
+Página `3.5.3-demo.2`, compatível com o aplicativo V3.5.3. Todos os botões de experimentar levam à seção de cálculo na própria página; somente Entrar e Quero o acesso completo abrem o aplicativo. Os três orçamentos gratuitos permanecem no aplicativo, sem nenhuma alteração de cadastro, cota ou cobrança. `vendas.html` e `vendas/index.html` devem permanecer idênticos. A amostra usa a mesma fórmula de área, material, frete, instalação com dificuldade e adicional de lucro sobre os custos do aplicativo. Aceita vírgula decimal, preserva valores zero permitidos e oculta resultados quando a entrada é inválida.
 
 A amostra não autentica, grava, consome cota gratuita, transmite medidas/custos ao banco, contrata assinatura, emite PDF ou envia WhatsApp. Os valores são ilustrativos. Recursos completos exigem a conta no aplicativo oficial. O pacote de publicação deve conter as sete páginas/configurações públicas, preservando o aplicativo atual — não envie somente a página de vendas para substituir todo o projeto.
