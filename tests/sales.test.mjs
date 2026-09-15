@@ -41,6 +41,18 @@ test('default sample and static hero accurately show R$574 and R$287 profit',()=
   assert.match(html,/R\$ 574,00/);assert.match(html,/R\$ 287,00/);
 });
 
+test('every experiment CTA stays on the sales calculator; full access is explicitly labeled',()=>{
+  const anchors=[...html.matchAll(/<a\b([^>]*)>([\s\S]*?)<\/a>/g)].map(m=>({attributes:m[1],text:m[2].replace(/<[^>]+>/g,'').trim(),href:m[1].match(/href="([^"]+)"/)?.[1]}));
+  const demos=anchors.filter(a=>/\bdata-demo-link\b/.test(a.attributes));
+  assert.ok(demos.length>=6);
+  for(const a of anchors.filter(a=>/experimentar|testar|fazer meu primeiro orçamento|usar meus 3 orçamentos/i.test(a.text)))assert.equal(a.href,'#demonstracao',a.text);
+  for(const a of demos)assert.equal(a.href,'#demonstracao',a.text);
+  const complete=anchors.filter(a=>a.text==='Quero o acesso completo');assert.ok(complete.length>=4);
+  for(const a of complete)assert.equal(a.href,'https://orca-metro.pages.dev/');
+  assert.match(html,/sem cadastro\. Só abra o aplicativo/);
+  assert.match(html,/Os 3 orçamentos gratuitos continuam disponíveis lá/);
+});
+
 test('sample matches the actual app formula for varied dimensions and factors',()=>{
   const formula=app.match(/const area = largura \* altura;([\s\S]*?)const total = custoTotal \+ lucro;/)[0];
   for(const values of [{},{largura:'1,5',altura:'1',distancia:'0',fatorPct:'0'},{largura:'2,3',altura:'4,5',taxaBase:'35',margemPct:'70',fatorPct:'80'},{valorKm:'0',taxaBase:'0',margemPct:'0'}]){
