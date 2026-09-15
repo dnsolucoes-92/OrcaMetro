@@ -1099,8 +1099,8 @@
                     if (code === 'asaas_not_configured') {
                         throw new Error('A integração de pagamento ainda está sendo configurada.');
                     }
-                    if (code === 'subscription_already_active') {
-                        throw new Error('Sua assinatura já está ativa. Atualize a página.');
+                    if (code === 'subscription_already_active' || code === 'subscription_requires_review') {
+                        throw new Error('Há uma assinatura vinculada. Confira Configurar → Minha conta antes de iniciar outro pagamento.');
                     }
                     throw new Error('Não foi possível abrir o pagamento. Tente novamente.');
                 }
