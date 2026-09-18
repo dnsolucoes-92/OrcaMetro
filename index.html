@@ -1390,9 +1390,7 @@
             try {
                 const { data, error } = await supabaseClient.rpc('orcametro_criar_orcamento', {
                     p_cliente: quote.cliente, p_material_nome: quote.material, p_largura: largura,
-                    p_altura: altura, p_distancia: distancia, p_dificuldade: tipoFatorAtual,
-                    p_custo_material: custoMaterial, p_frete: frete, p_custo_instalacao: instalacao,
-                    p_margem_percentual: margemPct, p_lucro_previsto: lucro, p_valor: total
+                    p_altura: altura, p_distancia: distancia, p_dificuldade: tipoFatorAtual
                 });
                 if (error) throw error;
                 if (currentUser?.id !== userId) return;
