@@ -1360,78 +1360,100 @@
                 document.getElementById('paywall-modal').classList.remove('hidden');
                 return;
             }
+
+            // O servidor é a fonte de verdade dos valores financeiros.
+            // No cliente validamos somente os dados necessários para localizar o material e calcular o orçamento.
             const largura = numeroCampo('medida-largura');
             const altura = numeroCampo('medida-altura');
             const distancia = numeroCampo('medida-distancia', 0);
-            const margemPct = numeroCampo('cfg-margem', 100);
-            const valorKm = numeroCampo('cfg-valorkm', 1.50);
-            const taxaBase = numeroCampo('cfg-taxabase', 25);
-            const fatorPct = numeroCampo('cfg-fator-' + tipoFatorAtual, 0);
-            const validade = numeroCampo('cfg-validade', 3);
             const select = document.getElementById('servico-material');
             const option = select?.options[select.selectedIndex];
-            const custoM2 = parseNumber(select?.value);
+            const material = option?.dataset.nome?.trim();
 
-            const camposInvalidos = [];
-            if (!Number.isFinite(largura)) camposInvalidos.push('largura');
-            if (!Number.isFinite(altura)) camposInvalidos.push('altura');
-            if (!Number.isFinite(distancia)) camposInvalidos.push('distância');
-            if (!Number.isFinite(margemPct)) camposInvalidos.push('margem de lucro');
-            if (!Number.isFinite(valorKm)) camposInvalidos.push('valor por KM');
-            if (!Number.isFinite(taxaBase)) camposInvalidos.push('taxa de instalação');
-            if (!Number.isFinite(fatorPct)) camposInvalidos.push('fator de instalação');
-            if (!Number.isFinite(validade)) camposInvalidos.push('validade');
-            if (!Number.isFinite(custoM2)) camposInvalidos.push('custo do material');
-
-            if (camposInvalidos.length) {
-                return alert('Confira estes campos: ' + camposInvalidos.join(', ') + '. Use números, por exemplo: 1,50.');
+            if (!Number.isFinite(largura) || !Number.isFinite(altura) || !Number.isFinite(distancia)) {
+                return alert('Confira largura, altura e distância. Use números como 2,00 ou 1,50.');
             }
             if (largura <= 0 || altura <= 0) return alert('Informe largura e altura maiores que zero.');
-            if ([distancia, margemPct, valorKm, taxaBase, fatorPct].some(v => v < 0)) return alert('Distância, custos, dificuldade e margem não podem ser negativos.');
-            if (!Number.isInteger(validade) || validade < 1) return alert('Informe uma validade de pelo menos 1 dia.');
-            if (!option?.dataset.nome || custoM2 <= 0) {
-                alert('Cadastre ou selecione um material com custo válido na aba Configurar.');
+            if (distancia < 0) return alert('A distância não pode ser negativa.');
+            if (!material) {
+                alert('Cadastre ou selecione um material antes de calcular.');
                 switchTab('configurar');
                 return;
             }
-            const area = largura * altura;
-            const custoMaterial = area * custoM2;
-            const frete = distancia * valorKm;
-            const instalacao = taxaBase * (1 + fatorPct / 100);
-            const custoTotal = custoMaterial + frete + instalacao;
-            const lucro = custoTotal * margemPct / 100;
-            const total = custoTotal + lucro;
-            if (![area, custoMaterial, frete, instalacao, lucro, total].every(Number.isFinite)) return alert('Os valores informados são muito grandes. Confira as medidas.');
+
             const userId = currentUser.id;
-            const quote = {
-                userId, cliente: document.getElementById('cliente-nome').value.trim() || 'Cliente',
-                empresa: document.getElementById('cfg-empresa').value.trim() || 'Sua Empresa',
-                material: option.dataset.nome, largura, altura, area, frete, lucro, total, margemPct, validade,
-                criadoEm: new Date()
-            };
             const button = document.querySelector('[data-action="calcularOrcamento"]');
             const label = document.getElementById('btn-calcular-texto');
             quoteBusy = true;
             if (button) { button.disabled = true; button.setAttribute('aria-busy', 'true'); }
-            label.innerText = 'Salvando orçamento...';
+            label.innerText = 'Calculando no servidor...';
+
             try {
                 const { data, error } = await supabaseClient.rpc('orcametro_criar_orcamento', {
-                    p_cliente: quote.cliente, p_material_nome: quote.material, p_largura: largura,
-                    p_altura: altura, p_distancia: distancia, p_dificuldade: tipoFatorAtual
+                    p_cliente: document.getElementById('cliente-nome').value.trim() || 'Cliente',
+                    p_material_nome: material,
+                    p_largura: largura,
+                    p_altura: altura,
+                    p_distancia: distancia,
+                    p_dificuldade: tipoFatorAtual
                 });
                 if (error) throw error;
                 if (currentUser?.id !== userId) return;
+
                 const retorno = Array.isArray(data) ? data[0] : data;
                 if (!retorno?.orcamento_id) throw new Error('Orçamento não confirmado pelo servidor');
+
+                // Busca os valores gravados pelo servidor para a tela nunca exibir um cálculo local divergente.
+                const { data: salvo, error: erroLeitura } = await supabaseClient
+                    .from('orcametro_orcamentos')
+                    .select('id,cliente,material_nome,largura,altura,area,distancia,dificuldade,custo_material,frete,custo_instalacao,margem_percentual,lucro_previsto,valor,created_at')
+                    .eq('id', retorno.orcamento_id)
+                    .eq('user_id', userId)
+                    .single();
+
+                if (erroLeitura) throw erroLeitura;
+                if (currentUser?.id !== userId) return;
+
                 currentProfile.orcamentos_gratis_usados = retorno.orcamentos_gratis_usados;
                 currentProfile.status_assinatura = retorno.status_assinatura;
-                lastQuote = quote;
-                areaCalculada = area; freteCalculado = frete; lucroCalculado = lucro; valorCalculado = total;
-                materialNomeSelecionado = quote.material;
+
+                const area = Number(salvo.area);
+                const frete = Number(salvo.frete);
+                const lucro = Number(salvo.lucro_previsto);
+                const total = Number(salvo.valor);
+                const margemPct = Number(salvo.margem_percentual);
+
+                if (![area, frete, lucro, total, margemPct].every(Number.isFinite)) {
+                    throw new Error('O servidor retornou valores financeiros inválidos.');
+                }
+
+                lastQuote = {
+                    userId,
+                    cliente: salvo.cliente,
+                    empresa: document.getElementById('cfg-empresa')?.value.trim() || 'Sua Empresa',
+                    material: salvo.material_nome,
+                    largura: Number(salvo.largura),
+                    altura: Number(salvo.altura),
+                    area,
+                    frete,
+                    lucro,
+                    total,
+                    margemPct,
+                    validade: Number(currentProfile.validade ?? 3),
+                    criadoEm: new Date(salvo.created_at)
+                };
+
+                areaCalculada = area;
+                freteCalculado = frete;
+                lucroCalculado = lucro;
+                valorCalculado = total;
+                materialNomeSelecionado = salvo.material_nome;
+
                 document.getElementById('resultado-valor').innerText = 'R$ ' + total.toFixed(2).replace('.', ',');
                 document.getElementById('resultado-area').innerText = area.toFixed(2).replace('.', ',') + 'm²';
                 document.getElementById('resultado-frete').innerText = 'R$ ' + frete.toFixed(2).replace('.', ',');
                 document.getElementById('resultado-lucro').innerText = 'R$ ' + lucro.toFixed(2).replace('.', ',') + ' (' + margemPct + '%)';
+
                 atualizarInterfacePlano(false);
                 await renderHistorico();
             } catch (e) {
@@ -1439,15 +1461,18 @@
                 if (e.code === 'TRIAL_LIMIT_REACHED' || String(e.message || '').includes('TRIAL_LIMIT_REACHED') || Number(e.status) === 402) {
                     currentProfile.orcamentos_gratis_usados = currentProfile.limite_gratis;
                     atualizarInterfacePlano();
-                } else { alert('Não foi possível salvar o orçamento. O resultado anterior foi mantido. Confira a conexão e tente novamente.'); }
+                    return;
+                }
+
                 console.error('Falha ao salvar orçamento:', e);
+                const detalhe = [e?.message, e?.code, e?.details, e?.hint].filter(Boolean).join(' | ');
+                alert('Não foi possível calcular o orçamento.\n\n' + (detalhe || 'Verifique sua conexão e tente novamente.'));
             } finally {
                 quoteBusy = false;
                 if (button) { button.disabled = false; button.setAttribute('aria-busy', 'false'); }
                 label.innerText = 'Calcular Orçamento Justo';
             }
         }
-
         async function renderHistorico() {
             const container = document.getElementById('lista-historico');
             if (!container) return;
