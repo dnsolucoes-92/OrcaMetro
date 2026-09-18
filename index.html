@@ -532,16 +532,29 @@
         function parseNumber(val) {
             if (val === null || val === undefined || val === '') return 0;
             if (typeof val === 'number') return Number.isFinite(val) ? val : NaN;
-            let text = String(val).trim();
-            if (text.includes(',')) {
-                if (text.includes('.') && !/^[+-]?\d{1,3}(\.\d{3})+(,\d+)?$/.test(text)) return NaN;
-                text = text.replace(/\./g, '').replace(',', '.');
+            let text = String(val).trim().replace(/R\\$|%|m²|km/gi, '').replace(/\s+/g, '');
+            if (text === '') return 0;
+
+            // Aceita formatos brasileiros (1.234,56) e decimais simples (1234.56).
+            if (text.includes(',') && text.includes('.')) {
+                if (/^[+-]?\d{1,3}(\.\d{3})+(,\d+)?$/.test(text)) {
+                    text = text.replace(/\./g, '').replace(',', '.');
+                } else if (/^[+-]?\d+(,\d+)?\.\d+$/.test(text)) {
+                    text = text.replace(/,/g, '');
+                } else {
+                    return NaN;
+                }
+            } else if (text.includes(',')) {
+                text = text.replace(',', '.');
             }
+
             return /^[+-]?(?:\d+(?:\.\d*)?|\.\d+)$/.test(text) ? Number(text) : NaN;
         }
 
         function numeroCampo(id, padrao = 0) {
-            const valor = document.getElementById(id).value;
+            const el = document.getElementById(id);
+            if (!el) return padrao;
+            const valor = el.value;
             return String(valor).trim() === '' ? padrao : parseNumber(valor);
         }
 
@@ -1349,16 +1362,30 @@
             }
             const largura = numeroCampo('medida-largura');
             const altura = numeroCampo('medida-altura');
-            const distancia = numeroCampo('medida-distancia');
+            const distancia = numeroCampo('medida-distancia', 0);
             const margemPct = numeroCampo('cfg-margem', 100);
             const valorKm = numeroCampo('cfg-valorkm', 1.50);
             const taxaBase = numeroCampo('cfg-taxabase', 25);
-            const fatorPct = numeroCampo('cfg-fator-' + tipoFatorAtual);
+            const fatorPct = numeroCampo('cfg-fator-' + tipoFatorAtual, 0);
             const validade = numeroCampo('cfg-validade', 3);
             const select = document.getElementById('servico-material');
             const option = select?.options[select.selectedIndex];
             const custoM2 = parseNumber(select?.value);
-            if (![largura, altura, distancia, margemPct, valorKm, taxaBase, fatorPct, validade, custoM2].every(Number.isFinite)) return alert('Confira os valores numéricos do orçamento e das configurações.');
+
+            const camposInvalidos = [];
+            if (!Number.isFinite(largura)) camposInvalidos.push('largura');
+            if (!Number.isFinite(altura)) camposInvalidos.push('altura');
+            if (!Number.isFinite(distancia)) camposInvalidos.push('distância');
+            if (!Number.isFinite(margemPct)) camposInvalidos.push('margem de lucro');
+            if (!Number.isFinite(valorKm)) camposInvalidos.push('valor por KM');
+            if (!Number.isFinite(taxaBase)) camposInvalidos.push('taxa de instalação');
+            if (!Number.isFinite(fatorPct)) camposInvalidos.push('fator de instalação');
+            if (!Number.isFinite(validade)) camposInvalidos.push('validade');
+            if (!Number.isFinite(custoM2)) camposInvalidos.push('custo do material');
+
+            if (camposInvalidos.length) {
+                return alert('Confira estes campos: ' + camposInvalidos.join(', ') + '. Use números, por exemplo: 1,50.');
+            }
             if (largura <= 0 || altura <= 0) return alert('Informe largura e altura maiores que zero.');
             if ([distancia, margemPct, valorKm, taxaBase, fatorPct].some(v => v < 0)) return alert('Distância, custos, dificuldade e margem não podem ser negativos.');
             if (!Number.isInteger(validade) || validade < 1) return alert('Informe uma validade de pelo menos 1 dia.');
