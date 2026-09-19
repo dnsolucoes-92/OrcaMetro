@@ -401,51 +401,21 @@
         </section>
 
         <section class="glass-card p-5 rounded-3xl space-y-4">
-            <h2 class="text-[10px] font-bold text-gray-400 uppercase tracking-wider"><i class="fa-solid fa-sliders mr-1.5 text-accentYellow"></i>Fatores de Grau de Instalação (%)</h2>
-            <div class="grid grid-cols-3 gap-3">
-                <div>
-                    <label class="block text-[10px] font-semibold text-gray-400 mb-1 text-center">Fácil (%)</label>
-                    <input type="text" id="cfg-fator-facil" class="w-full bg-black/40 border border-gray-800 rounded-xl px-2 py-2.5 text-xs text-white font-bold text-center focus:outline-none">
-                </div>
-                <div>
-                    <label class="block text-[10px] font-semibold text-gray-400 mb-1 text-center">Médio (%)</label>
-                    <input type="text" id="cfg-fator-medio" class="w-full bg-black/40 border border-gray-800 rounded-xl px-2 py-2.5 text-xs text-white font-bold text-center focus:outline-none">
-                </div>
-                <div>
-                    <label class="block text-[10px] font-semibold text-gray-400 mb-1 text-center">Difícil (%)</label>
-                    <input type="text" id="cfg-fator-dificil" class="w-full bg-black/40 border border-gray-800 rounded-xl px-2 py-2.5 text-xs text-white font-bold text-center focus:outline-none">
-                </div>
-            </div>
-        </section>
-
-        <section class="glass-card p-5 rounded-3xl space-y-4">
-            <h2 class="text-[10px] font-bold text-gray-400 uppercase tracking-wider"><i class="fa-solid fa-circle-dollar-to-slot mr-1.5 text-accentYellow"></i>Regras de Markup e Logística</h2>
-            <div>
-                <label class="block text-xs font-semibold text-gray-400 mb-2">Margem de Lucro Desejada (%)</label>
-                <input type="text" id="cfg-margem" class="w-full bg-black/40 border border-gray-800 rounded-xl px-4 py-3 text-sm text-emerald-400 font-bold focus:outline-none">
-            </div>
-            <div>
-                <label class="block text-xs font-semibold text-gray-400 mb-2">Valor Cobrado por KM Rodado (R$)</label>
-                <input type="text" id="cfg-valorkm" class="w-full bg-black/40 border border-gray-800 rounded-xl px-4 py-3 text-sm text-white font-bold focus:outline-none">
-            </div>
-            <div>
-                <label class="block text-xs font-semibold text-gray-400 mb-2">Taxa Base de Instalação (R$)</label>
-                <input type="text" id="cfg-taxabase" class="w-full bg-black/40 border border-gray-800 rounded-xl px-4 py-3 text-sm text-white focus:outline-none">
-            </div>
-            <div>
-                <label class="block text-xs font-semibold text-gray-400 mb-2">Validade do Orçamento (Dias)</label>
-                <input type="text" id="cfg-validade" class="w-full bg-black/40 border border-gray-800 rounded-xl px-4 py-3 text-sm text-white font-bold focus:outline-none">
-            </div>
+            <h2 class="text-[10px] font-bold text-gray-400 uppercase tracking-wider"><i class="fa-solid fa-address-card mr-1.5 text-accentYellow"></i>Contato da Oficina</h2>
             <div>
                 <label class="block text-xs font-semibold text-gray-400 mb-2">Seu WhatsApp Profissional (Opcional)</label>
-                <input type="text" id="cfg-whatsapp" class="w-full bg-black/40 border border-gray-800 rounded-xl px-4 py-3 text-sm text-white focus:outline-none">
-                <p class="mt-1.5 text-[10px] leading-relaxed text-gray-500">Este é o contato da sua empresa e não será usado como destinatário dos orçamentos.</p>
+                <input type="text" id="cfg-whatsapp" maxlength="30" class="w-full bg-black/40 border border-gray-800 rounded-xl px-4 py-3 text-sm text-white focus:outline-none">
+                <p class="mt-1.5 text-[10px] leading-relaxed text-gray-500">Este é o contato da sua empresa e será usado apenas quando você escolher enviar um orçamento pelo WhatsApp.</p>
             </div>
         </section>
 
         <button type="button" data-action="salvarConfiguracoes" class="w-full py-4 bg-accentYellow hover:bg-accentYellowHover text-darkBg font-extrabold rounded-2xl uppercase tracking-wider text-xs shadow-lg">
-            <i class="fa-solid fa-floppy-disk mr-1.5"></i> Salvar Parâmetros
+            <i class="fa-solid fa-floppy-disk mr-1.5"></i> Salvar dados da oficina
         </button>
+
+        <p class="px-2 text-[10px] leading-relaxed text-gray-500 text-center">
+            Os parâmetros de cálculo, margem, deslocamento, instalação e validade são mantidos pelo sistema para preservar a consistência dos seus orçamentos. Para alterações nesses parâmetros, fale com o suporte.
+        </p>
     </main>
 
     <footer class="mt-12 text-center text-xs text-gray-400/80 max-w-md mx-auto px-5 space-y-2">
@@ -1262,21 +1232,10 @@
                 fatoresDificuldade: perfil.fatores_dificuldade || configPadrao.fatoresDificuldade
             };
 
-            document.getElementById('cfg-empresa').value = config.empresa;
-            document.getElementById('cfg-margem').value = config.margemLucro;
-            document.getElementById('cfg-valorkm').value = config.valorKm;
-            document.getElementById('cfg-taxabase').value = config.taxaBase;
-            document.getElementById('cfg-validade').value = config.validade;
-            document.getElementById('cfg-whatsapp').value = config.whatsapp;
-
-            const fat = config.fatoresDificuldade;
-            document.getElementById('cfg-fator-facil').value = fat.facil;
-            document.getElementById('cfg-fator-medio').value = fat.medio;
-            document.getElementById('cfg-fator-dificil').value = fat.dificil;
-
-            document.getElementById('lbl-fator-facil').innerText = `+${fat.facil}%`;
-            document.getElementById('lbl-fator-medio').innerText = `+${fat.medio}%`;
-            document.getElementById('lbl-fator-dificil').innerText = `+${fat.dificil}%`;
+            const empresaInput = document.getElementById('cfg-empresa');
+            const whatsappInput = document.getElementById('cfg-whatsapp');
+            if (empresaInput) empresaInput.value = config.empresa;
+            if (whatsappInput) whatsappInput.value = config.whatsapp;
         }
 
         async function carregarMateriaisDoBanco() {
@@ -1562,50 +1521,32 @@
         async function salvarConfiguracoes() {
             if (!currentUser || !supabaseClient) return;
 
-            const empresa = document.getElementById('cfg-empresa').value.trim() || "Sua Empresa";
-            const margemLucro = parseNumber(document.getElementById('cfg-margem').value);
-            const valorKm = parseNumber(document.getElementById('cfg-valorkm').value);
-            const taxaBase = parseNumber(document.getElementById('cfg-taxabase').value);
-            const validade = parseNumber(document.getElementById('cfg-validade').value);
-            const whatsapp = document.getElementById('cfg-whatsapp').value.trim();
+            const empresa = document.getElementById('cfg-empresa')?.value.trim() || "Sua Empresa";
+            const whatsapp = document.getElementById('cfg-whatsapp')?.value.trim() || "";
 
-            const fatoresDificuldade = {
-                facil: parseNumber(document.getElementById('cfg-fator-facil').value),
-                medio: parseNumber(document.getElementById('cfg-fator-medio').value),
-                dificil: parseNumber(document.getElementById('cfg-fator-dificil').value)
-            };
-
-            if (![margemLucro, valorKm, taxaBase, validade, ...Object.values(fatoresDificuldade)].every(Number.isFinite)
-                || [margemLucro, valorKm, taxaBase, ...Object.values(fatoresDificuldade)].some(v => v < 0)
-                || !Number.isInteger(validade) || validade < 1) {
-                alert('Use custos, margem e fatores não negativos e uma validade inteira de pelo menos 1 dia.');
+            if (empresa.length > 120) {
+                alert('O nome comercial deve ter até 120 caracteres.');
+                return;
+            }
+            if (whatsapp.length > 30) {
+                alert('O WhatsApp deve ter até 30 caracteres.');
                 return;
             }
 
             try {
                 const { error } = await supabaseClient
                     .from('orcametro_perfis')
-                    .update({
-                        empresa,
-                        margem_lucro: margemLucro,
-                        valor_km: valorKm,
-                        taxa_base: taxaBase,
-                        validade,
-                        whatsapp,
-                        fatores_dificuldade: fatoresDificuldade
-                    })
+                    .update({ empresa, whatsapp })
                     .eq('id', currentUser.id);
 
                 if (error) throw error;
 
-                document.getElementById('lbl-fator-facil').innerText = `+${fatoresDificuldade.facil}%`;
-                document.getElementById('lbl-fator-medio').innerText = `+${fatoresDificuldade.medio}%`;
-                document.getElementById('lbl-fator-dificil').innerText = `+${fatoresDificuldade.dificil}%`;
-
-                alert("Configurações salvas no Supabase com sucesso!");
+                currentProfile.empresa = empresa;
+                currentProfile.whatsapp = whatsapp;
+                alert("Dados da oficina salvos com sucesso!");
             } catch (e) {
-                console.error("Erro ao salvar configurações:", e);
-                alert("Erro ao salvar configurações no servidor.");
+                console.error("Erro ao salvar dados da oficina:", e);
+                alert("Não foi possível salvar os dados da oficina.");
             }
         }
 
