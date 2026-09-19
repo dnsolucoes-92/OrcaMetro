@@ -318,107 +318,32 @@
     <main id="view-configurar" class="max-w-md mx-auto px-5 mt-6 space-y-5 hidden">
         <section id="account-panel" class="glass-card p-5 rounded-3xl space-y-4">
             <h2 class="text-sm font-bold text-white"><i class="fa-solid fa-user-shield mr-2 text-accentYellow"></i>Minha conta e assinatura</h2>
-            <p class="text-xs text-gray-400">Seu acesso, suas cobranças e sua escolha de continuar.</p>
-            <div class="rounded-xl bg-black/30 p-3 text-xs space-y-1">
-                <span class="text-gray-400">E-mail de acesso</span>
-                <p id="account-email" class="font-semibold text-white break-all">Entre para ver sua conta.</p>
-                <p class="text-[11px] text-gray-400">Acesso sem confirmação de e-mail. Confira o endereço: ele não comprova a titularidade. Para alterá-lo, fale com o suporte; será necessário verificar que a conta é sua.</p>
-            </div>
-            <dl class="grid grid-cols-2 gap-3 text-xs">
-                <div><dt class="text-gray-400">Plano</dt><dd id="account-plan" class="font-bold mt-1">—</dd></div>
-                <div><dt class="text-gray-400">Situação do acesso</dt><dd id="account-status" class="font-bold mt-1">—</dd></div>
-                <div><dt class="text-gray-400">Acesso pago até</dt><dd id="account-expiry" class="font-bold mt-1">—</dd></div>
-                <div><dt class="text-gray-400">Tempo restante</dt><dd id="account-days" class="font-bold mt-1">—</dd></div>
-            </dl>
-            <div class="rounded-xl border border-gray-700 p-3 text-xs space-y-2">
-                <p id="account-price" class="font-semibold">Preço: consulte sua assinatura.</p>
-                <p id="account-renewal" class="text-gray-300">Renovação: ainda não consultada.</p>
-                <p id="account-next" class="text-gray-400">Próxima cobrança: ainda não consultada.</p>
-            </div>
-            <button type="button" id="account-refresh" data-action="consultarMinhaAssinatura" class="w-full rounded-xl bg-gray-800 py-3 text-xs font-bold">Atualizar assinatura e cobranças</button>
+            <p class="text-xs text-gray-400">Seu acesso, assinatura e dados da conta.</p>
+            <div class="rounded-xl bg-black/30 p-3 text-xs"><span class="text-gray-400">E-mail de acesso</span><p id="account-email" class="font-semibold text-white break-all">Entre para ver sua conta.</p></div>
+            <dl class="grid grid-cols-2 gap-3 text-xs"><div><dt class="text-gray-400">Plano</dt><dd id="account-plan" class="font-bold mt-1">—</dd></div><div><dt class="text-gray-400">Situação</dt><dd id="account-status" class="font-bold mt-1">—</dd></div><div><dt class="text-gray-400">Acesso até</dt><dd id="account-expiry" class="font-bold mt-1">—</dd></div><div><dt class="text-gray-400">Tempo restante</dt><dd id="account-days" class="font-bold mt-1">—</dd></div></dl>
+            <button type="button" id="account-refresh" data-action="consultarMinhaAssinatura" class="w-full rounded-xl bg-gray-800 py-3 text-xs font-bold">Atualizar assinatura</button>
             <button type="button" id="account-cancel-open" data-action="abrirCancelamento" disabled class="hidden w-full rounded-xl border border-rose-500/40 text-rose-300 py-3 text-xs font-bold">Cancelar renovação</button>
-            <div id="account-cancel-panel" class="hidden rounded-xl border border-rose-500/30 p-4 space-y-3">
-                <p class="text-sm font-bold">Quer parar as próximas renovações?</p>
-                <p class="text-xs text-gray-300">Esta ação encerra a recorrência no Asaas. O período já pago permanece disponível até o vencimento mostrado acima, e seu histórico não será apagado. Não é um pedido de reembolso.</p>
-                <p class="text-xs text-gray-400">Para continuar depois do período pago, será necessário contratar uma nova assinatura. Nenhum novo pagamento será feito por este botão.</p>
-                <label class="flex gap-2 text-xs text-gray-300"><input type="checkbox" id="account-cancel-confirm" class="mt-0.5">Entendi e quero cancelar a renovação.</label>
-                <div class="flex gap-2">
-                    <button type="button" id="account-cancel-submit" data-action="cancelarMinhaRenovacao" class="flex-1 bg-rose-600 rounded-xl py-3 text-xs font-bold">Confirmar cancelamento</button>
-                    <button type="button" data-action="fecharCancelamento" class="flex-1 bg-gray-800 rounded-xl py-3 text-xs font-bold">Voltar</button>
-                </div>
-            </div>
-            <p id="account-msg" role="status" aria-live="polite" class="min-h-[1rem] text-xs leading-relaxed text-amber-300"></p>
-            <details class="border-t border-gray-800 pt-3">
-                <summary class="cursor-pointer text-xs font-bold">Cobranças e comprovantes</summary>
-                <p class="text-[11px] text-gray-400 mt-2">Dados do Asaas, atualizados pelo botão acima. Comprovante de pagamento não é nota fiscal.</p>
-                <div id="account-payments" class="mt-3 space-y-3 text-xs text-gray-400">Consulte sua assinatura para carregar as cobranças.</div>
-            </details>
-            <details class="border-t border-gray-800 pt-3">
-                <summary class="cursor-pointer text-xs font-bold">Alterar senha</summary>
-                <p class="text-[11px] text-gray-400 mt-2">Usaremos sua senha atual para confirmar o acesso. Ao concluir, entre novamente com a nova senha. Esta conta pode ser usada também nos outros aplicativos DN.</p>
-                <div class="mt-3 space-y-3">
-                    <div><label for="account-current-password" class="block text-xs text-gray-400 mb-1">Senha atual</label><input id="account-current-password" type="password" autocomplete="current-password" maxlength="128" class="w-full bg-black/40 border border-gray-700 rounded-xl px-3 py-3 text-sm"></div>
-                    <div><label for="account-new-password" class="block text-xs text-gray-400 mb-1">Nova senha (mínimo 8 caracteres)</label><input id="account-new-password" type="password" autocomplete="new-password" minlength="8" maxlength="128" class="w-full bg-black/40 border border-gray-700 rounded-xl px-3 py-3 text-sm"></div>
-                    <div><label for="account-confirm-password" class="block text-xs text-gray-400 mb-1">Repita a nova senha</label><input id="account-confirm-password" type="password" autocomplete="new-password" minlength="8" maxlength="128" class="w-full bg-black/40 border border-gray-700 rounded-xl px-3 py-3 text-sm"></div>
-                    <p class="text-[11px] text-gray-400">Prefira uma senha longa e exclusiva, sem nomes ou datas. Não compartilhe sua senha com o suporte.</p>
-                    <button type="button" id="account-password-submit" data-action="alterarMinhaSenha" class="w-full bg-gray-800 rounded-xl py-3 text-xs font-bold">Salvar nova senha</button>
-                    <p id="account-password-msg" role="status" aria-live="polite" class="text-xs text-amber-300"></p>
-                </div>
-            </details>
-            <details class="border-t border-gray-800 pt-3">
-                <summary class="cursor-pointer text-xs font-bold">Meus dados e suporte</summary>
-                <p class="text-[11px] text-gray-400 mt-2">Baixe sua configuração, materiais e histórico em JSON. O arquivo contém informações dos seus clientes; guarde-o com cuidado.</p>
-                <button type="button" id="account-export" data-action="exportarMeusDados" class="w-full mt-3 bg-gray-800 rounded-xl py-3 text-xs font-bold">Exportar meus dados</button>
-                <p id="account-export-msg" role="status" aria-live="polite" class="text-xs text-amber-300 mt-2"></p>
-                <a href="mailto:dn_grafica@hotmail.com?subject=Suporte%20OrcaMetro" class="block mt-3 text-xs text-accentYellow underline">Falar com o suporte</a>
-                <a href="mailto:dn_grafica@hotmail.com?subject=Solicitacao%20de%20exclusao%20de%20conta%20OrcaMetro" class="block mt-3 text-xs text-gray-400 underline">Solicitar exclusão da conta e dos dados</a>
-                <p class="text-[11px] text-gray-400 mt-2">Excluir a conta e cancelar a renovação são ações diferentes. Para interromper cobranças, use Cancelar renovação ou solicite isso expressamente ao suporte. Não envie senhas nem dados do cartão.</p>
-                <div class="flex gap-4 mt-3 text-xs text-gray-400"><a href="/termos" class="underline">Termos</a><a href="/privacidade" class="underline">Privacidade</a></div>
-            </details>
+            <div id="account-cancel-panel" class="hidden rounded-xl border border-rose-500/30 p-4 space-y-3"><p class="text-sm font-bold">Quer parar as próximas renovações?</p><p class="text-xs text-gray-300">O período já pago permanece disponível até o vencimento.</p><label class="flex gap-2 text-xs text-gray-300"><input type="checkbox" id="account-cancel-confirm" class="mt-0.5">Entendi e quero cancelar a renovação.</label><div class="flex gap-2"><button type="button" id="account-cancel-submit" data-action="cancelarMinhaRenovacao" class="flex-1 bg-rose-600 rounded-xl py-3 text-xs font-bold">Confirmar cancelamento</button><button type="button" data-action="fecharCancelamento" class="flex-1 bg-gray-800 rounded-xl py-3 text-xs font-bold">Voltar</button></div></div>
+            <p id="account-msg" role="status" aria-live="polite" class="min-h-[1rem] text-xs text-amber-300"></p>
+            <details class="border-t border-gray-800 pt-3"><summary class="cursor-pointer text-xs font-bold">Cobranças e comprovantes</summary><div id="account-payments" class="mt-3 space-y-3 text-xs text-gray-400">Consulte sua assinatura para carregar as cobranças.</div></details>
+            <details class="border-t border-gray-800 pt-3"><summary class="cursor-pointer text-xs font-bold">Alterar senha</summary><div class="mt-3 space-y-3"><input id="account-current-password" type="password" autocomplete="current-password" maxlength="128" placeholder="Senha atual" class="w-full bg-black/40 border border-gray-700 rounded-xl px-3 py-3 text-sm"><input id="account-new-password" type="password" autocomplete="new-password" minlength="8" maxlength="128" placeholder="Nova senha (mínimo 8 caracteres)" class="w-full bg-black/40 border border-gray-700 rounded-xl px-3 py-3 text-sm"><input id="account-confirm-password" type="password" autocomplete="new-password" minlength="8" maxlength="128" placeholder="Repita a nova senha" class="w-full bg-black/40 border border-gray-700 rounded-xl px-3 py-3 text-sm"><button type="button" id="account-password-submit" data-action="alterarMinhaSenha" class="w-full bg-gray-800 rounded-xl py-3 text-xs font-bold">Salvar nova senha</button><p id="account-password-msg" role="status" class="text-xs text-amber-300"></p></div></details>
+            <details class="border-t border-gray-800 pt-3"><summary class="cursor-pointer text-xs font-bold">Meus dados e suporte</summary><button type="button" id="account-export" data-action="exportarMeusDados" class="w-full mt-3 bg-gray-800 rounded-xl py-3 text-xs font-bold">Exportar meus dados</button><p id="account-export-msg" role="status" class="text-xs text-amber-300 mt-2"></p><a href="mailto:dn_grafica@hotmail.com?subject=Suporte%20OrcaMetro" class="block mt-3 text-xs text-accentYellow underline">Falar com o suporte</a><a href="mailto:dn_grafica@hotmail.com?subject=Solicitacao%20de%20exclusao%20de%20conta%20OrcaMetro" class="block mt-3 text-xs text-gray-400 underline">Solicitar exclusão da conta</a><div class="flex gap-4 mt-3 text-xs text-gray-400"><a href="/termos" class="underline">Termos</a><a href="/privacidade" class="underline">Privacidade</a></div></details>
         </section>
         <section class="glass-card p-5 rounded-3xl space-y-4">
-            <h2 class="text-[10px] font-bold text-gray-400 uppercase tracking-wider"><i class="fa-solid fa-building mr-1.5 text-accentYellow"></i>Identidade da Oficina</h2>
-            <div>
-                <label class="block text-xs font-semibold text-gray-400 mb-2">Nome Comercial</label>
-                <input type="text" id="cfg-empresa" placeholder="Seu nome" class="w-full bg-black/40 border border-gray-800 rounded-xl px-4 py-3 text-sm text-white focus:outline-none">
-            </div>
+            <h2 class="text-[10px] font-bold text-gray-400 uppercase tracking-wider"><i class="fa-solid fa-sliders mr-1.5 text-accentYellow"></i>Configurações usadas no orçamento</h2>
+            <div><label class="block text-xs font-semibold text-gray-400 mb-2">Nome Comercial</label><input type="text" id="cfg-empresa" class="w-full bg-black/40 border border-gray-800 rounded-xl px-4 py-3 text-sm text-white"></div>
+            <div><label class="block text-xs font-semibold text-gray-400 mb-2">Margem de Lucro Desejada (%)</label><input type="text" id="cfg-margem" class="w-full bg-black/40 border border-gray-800 rounded-xl px-4 py-3 text-sm text-emerald-400 font-bold"></div>
+            <div><label class="block text-xs font-semibold text-gray-400 mb-2">Valor Cobrado por KM Rodado (R$)</label><input type="text" id="cfg-valorkm" class="w-full bg-black/40 border border-gray-800 rounded-xl px-4 py-3 text-sm text-white font-bold"></div>
+            <div><label class="block text-xs font-semibold text-gray-400 mb-2">Taxa Base de Instalação (R$)</label><input type="text" id="cfg-taxabase" class="w-full bg-black/40 border border-gray-800 rounded-xl px-4 py-3 text-sm text-white"></div>
+            <div><label class="block text-xs font-semibold text-gray-400 mb-2">Validade do Orçamento (Dias)</label><input type="text" id="cfg-validade" class="w-full bg-black/40 border border-gray-800 rounded-xl px-4 py-3 text-sm text-white font-bold"></div>
+            <div><label class="block text-xs font-semibold text-gray-400 mb-2">WhatsApp Profissional (Opcional)</label><input type="text" id="cfg-whatsapp" maxlength="30" class="w-full bg-black/40 border border-gray-800 rounded-xl px-4 py-3 text-sm text-white"></div>
         </section>
-
-        <section class="glass-card p-5 rounded-3xl space-y-4">
-            <h2 class="text-[10px] font-bold text-gray-400 uppercase tracking-wider"><i class="fa-solid fa-tags mr-1.5 text-accentYellow"></i>Preço de Custo dos Adesivos (/m²)</h2>
-            <p class="text-[10px] text-amber-500 -mt-2">Insira aqui o valor real cobrado pelo seu fornecedor gráfico.</p>
-
-            <div id="lista-materials-config" class="space-y-3"></div>
-
-            <div class="pt-4 border-t border-gray-800/80">
-                <p class="text-[10px] font-bold text-gray-400 uppercase mb-2">Adicionar Novo Material (Custo)</p>
-                <div class="flex gap-2">
-                    <input type="text" id="add-material-nome" placeholder="Ex: Vinil Jateado" class="flex-1 bg-black/40 border border-gray-800 rounded-xl px-3.5 py-2.5 text-xs text-white">
-                    <input type="text" id="add-material-preco" placeholder="Custo/m²" class="w-20 bg-black/40 border border-gray-800 rounded-xl px-2 py-2.5 text-xs text-white text-center">
-                    <button type="button" data-action="adicionarMaterialNovo" class="bg-accentYellow text-darkBg text-xs font-bold px-3.5 py-2.5 rounded-xl"><i class="fa-solid fa-plus"></i></button>
-                </div>
-            </div>
-        </section>
-
-        <section class="glass-card p-5 rounded-3xl space-y-4">
-            <h2 class="text-[10px] font-bold text-gray-400 uppercase tracking-wider"><i class="fa-solid fa-address-card mr-1.5 text-accentYellow"></i>Contato da Oficina</h2>
-            <div>
-                <label class="block text-xs font-semibold text-gray-400 mb-2">Seu WhatsApp Profissional (Opcional)</label>
-                <input type="text" id="cfg-whatsapp" maxlength="30" class="w-full bg-black/40 border border-gray-800 rounded-xl px-4 py-3 text-sm text-white focus:outline-none">
-                <p class="mt-1.5 text-[10px] leading-relaxed text-gray-500">Este é o contato da sua empresa e será usado apenas quando você escolher enviar um orçamento pelo WhatsApp.</p>
-            </div>
-        </section>
-
-        <button type="button" data-action="salvarConfiguracoes" class="w-full py-4 bg-accentYellow hover:bg-accentYellowHover text-darkBg font-extrabold rounded-2xl uppercase tracking-wider text-xs shadow-lg">
-            <i class="fa-solid fa-floppy-disk mr-1.5"></i> Salvar dados da oficina
-        </button>
-
-        <p class="px-2 text-[10px] leading-relaxed text-gray-500 text-center">
-            Os parâmetros de cálculo, margem, deslocamento, instalação e validade são mantidos pelo sistema para preservar a consistência dos seus orçamentos. Para alterações nesses parâmetros, fale com o suporte.
-        </p>
+        <section class="glass-card p-5 rounded-3xl space-y-4"><h2 class="text-[10px] font-bold text-gray-400 uppercase tracking-wider"><i class="fa-solid fa-sliders mr-1.5 text-accentYellow"></i>Grau de Instalação (%)</h2><div class="grid grid-cols-3 gap-3"><div><label class="block text-[10px] text-gray-400 mb-1 text-center">Fácil (%)</label><input type="text" id="cfg-fator-facil" class="w-full bg-black/40 border border-gray-800 rounded-xl px-2 py-2.5 text-xs text-white text-center"></div><div><label class="block text-[10px] text-gray-400 mb-1 text-center">Médio (%)</label><input type="text" id="cfg-fator-medio" class="w-full bg-black/40 border border-gray-800 rounded-xl px-2 py-2.5 text-xs text-white text-center"></div><div><label class="block text-[10px] text-gray-400 mb-1 text-center">Difícil (%)</label><input type="text" id="cfg-fator-dificil" class="w-full bg-black/40 border border-gray-800 rounded-xl px-2 py-2.5 text-xs text-white text-center"></div></div><p class="text-[10px] text-gray-500">Esses valores são aplicados ao cálculo do orçamento.</p></section>
+        <section class="glass-card p-5 rounded-3xl space-y-4"><h2 class="text-[10px] font-bold text-gray-400 uppercase tracking-wider"><i class="fa-solid fa-tags mr-1.5 text-accentYellow"></i>Materiais e Custos</h2><p class="text-[10px] text-gray-500">Cadastre os custos reais dos seus materiais.</p><div id="lista-materials-config" class="space-y-3"></div><div class="pt-4 border-t border-gray-800/80 flex gap-2"><input type="text" id="add-material-nome" placeholder="Nome do material" class="flex-1 bg-black/40 border border-gray-800 rounded-xl px-3.5 py-2.5 text-xs text-white"><input type="text" id="add-material-preco" placeholder="Custo/m²" class="w-20 bg-black/40 border border-gray-800 rounded-xl px-2 py-2.5 text-xs text-white text-center"><button type="button" data-action="adicionarMaterialNovo" class="bg-accentYellow text-darkBg text-xs font-bold px-3.5 py-2.5 rounded-xl"><i class="fa-solid fa-plus"></i></button></div></section>
+        <button type="button" data-action="salvarConfiguracoes" class="w-full py-4 bg-accentYellow hover:bg-accentYellowHover text-darkBg font-extrabold rounded-2xl uppercase tracking-wider text-xs shadow-lg"><i class="fa-solid fa-floppy-disk mr-1.5"></i> Salvar configurações do orçamento</button>
     </main>
 
-    <footer class="mt-12 text-center text-xs text-gray-400/80 max-w-md mx-auto px-5 space-y-2">
+<footer class="mt-12 text-center text-xs text-gray-400/80 max-w-md mx-auto px-5 space-y-2">
         <p>© 2026 OrçaMetro - DN SOLUÇÕES. Todos os direitos reservados.</p>
         <p class="text-accentYellow font-semibold tracking-wide">Teste gratuito de 3 orçamentos</p>
         <p>
@@ -1222,20 +1147,20 @@
         }
 
         async function carregarConfiguracoesDoBanco(perfil) {
-            const config = {
-                empresa: perfil.empresa || configPadrao.empresa,
-                margemLucro: perfil.margem_lucro ?? configPadrao.margemLucro,
-                valorKm: perfil.valor_km ?? configPadrao.valorKm,
-                taxaBase: perfil.taxa_base ?? configPadrao.taxaBase,
-                validade: perfil.validade ?? configPadrao.validade,
-                whatsapp: perfil.whatsapp || configPadrao.whatsapp,
-                fatoresDificuldade: perfil.fatores_dificuldade || configPadrao.fatoresDificuldade
-            };
-
-            const empresaInput = document.getElementById('cfg-empresa');
-            const whatsappInput = document.getElementById('cfg-whatsapp');
-            if (empresaInput) empresaInput.value = config.empresa;
-            if (whatsappInput) whatsappInput.value = config.whatsapp;
+            const config = { empresa: perfil.empresa || configPadrao.empresa, margemLucro: perfil.margem_lucro ?? configPadrao.margemLucro, valorKm: perfil.valor_km ?? configPadrao.valorKm, taxaBase: perfil.taxa_base ?? configPadrao.taxaBase, validade: perfil.validade ?? configPadrao.validade, whatsapp: perfil.whatsapp || configPadrao.whatsapp, fatoresDificuldade: perfil.fatores_dificuldade || configPadrao.fatoresDificuldade };
+            document.getElementById('cfg-empresa').value = config.empresa;
+            document.getElementById('cfg-margem').value = config.margemLucro;
+            document.getElementById('cfg-valorkm').value = config.valorKm;
+            document.getElementById('cfg-taxabase').value = config.taxaBase;
+            document.getElementById('cfg-validade').value = config.validade;
+            document.getElementById('cfg-whatsapp').value = config.whatsapp;
+            const fat = config.fatoresDificuldade;
+            document.getElementById('cfg-fator-facil').value = fat.facil;
+            document.getElementById('cfg-fator-medio').value = fat.medio;
+            document.getElementById('cfg-fator-dificil').value = fat.dificil;
+            document.getElementById('lbl-fator-facil').innerText = `+${fat.facil}%`;
+            document.getElementById('lbl-fator-medio').innerText = `+${fat.medio}%`;
+            document.getElementById('lbl-fator-dificil').innerText = `+${fat.dificil}%`;
         }
 
         async function carregarMateriaisDoBanco() {
@@ -1520,34 +1445,23 @@
 
         async function salvarConfiguracoes() {
             if (!currentUser || !supabaseClient) return;
-
-            const empresa = document.getElementById('cfg-empresa')?.value.trim() || "Sua Empresa";
-            const whatsapp = document.getElementById('cfg-whatsapp')?.value.trim() || "";
-
-            if (empresa.length > 120) {
-                alert('O nome comercial deve ter até 120 caracteres.');
-                return;
-            }
-            if (whatsapp.length > 30) {
-                alert('O WhatsApp deve ter até 30 caracteres.');
-                return;
-            }
-
+            const empresa = document.getElementById('cfg-empresa').value.trim() || "Sua Empresa";
+            const margemLucro = parseNumber(document.getElementById('cfg-margem').value);
+            const valorKm = parseNumber(document.getElementById('cfg-valorkm').value);
+            const taxaBase = parseNumber(document.getElementById('cfg-taxabase').value);
+            const validade = parseNumber(document.getElementById('cfg-validade').value);
+            const whatsapp = document.getElementById('cfg-whatsapp').value.trim();
+            const fatoresDificuldade = { facil: parseNumber(document.getElementById('cfg-fator-facil').value), medio: parseNumber(document.getElementById('cfg-fator-medio').value), dificil: parseNumber(document.getElementById('cfg-fator-dificil').value) };
+            if (![margemLucro, valorKm, taxaBase, validade, ...Object.values(fatoresDificuldade)].every(Number.isFinite) || [margemLucro, valorKm, taxaBase, ...Object.values(fatoresDificuldade)].some(v => v < 0) || !Number.isInteger(validade) || validade < 1) return alert('Use custos, margem e fatores não negativos e uma validade inteira de pelo menos 1 dia.');
             try {
-                const { error } = await supabaseClient
-                    .from('orcametro_perfis')
-                    .update({ empresa, whatsapp })
-                    .eq('id', currentUser.id);
-
+                const { error } = await supabaseClient.from('orcametro_perfis').update({ empresa, margem_lucro: margemLucro, valor_km: valorKm, taxa_base: taxaBase, validade, whatsapp, fatores_dificuldade: fatoresDificuldade }).eq('id', currentUser.id);
                 if (error) throw error;
-
-                currentProfile.empresa = empresa;
-                currentProfile.whatsapp = whatsapp;
-                alert("Dados da oficina salvos com sucesso!");
-            } catch (e) {
-                console.error("Erro ao salvar dados da oficina:", e);
-                alert("Não foi possível salvar os dados da oficina.");
-            }
+                Object.assign(currentProfile,{empresa,margem_lucro:margemLucro,valor_km:valorKm,taxa_base:taxaBase,validade,whatsapp,fatores_dificuldade:fatoresDificuldade});
+                document.getElementById('lbl-fator-facil').innerText = `+${fatoresDificuldade.facil}%`;
+                document.getElementById('lbl-fator-medio').innerText = `+${fatoresDificuldade.medio}%`;
+                document.getElementById('lbl-fator-dificil').innerText = `+${fatoresDificuldade.dificil}%`;
+                alert("Configurações do orçamento salvas com sucesso!");
+            } catch (e) { console.error("Erro ao salvar configurações:", e); alert("Erro ao salvar configurações no servidor."); }
         }
 
         function enviarWhatsApp() {
